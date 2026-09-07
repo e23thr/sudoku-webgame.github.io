@@ -6,11 +6,10 @@ import type { Difficulty } from '../types/sudoku';
 export function usePreferences() {
   const [preferences, setPreferences] = useState<UserPreferences>(loadPreferences);
 
-  // Apply theme class to body whenever theme changes
+  // Apply theme via data-theme attribute on <html>
   useEffect(() => {
-    const body = document.body;
-    body.classList.remove('theme-light', 'theme-dark', 'theme-colorful');
-    body.classList.add(`theme-${preferences.theme}`);
+    const html = document.documentElement;
+    html.setAttribute('data-theme', preferences.theme);
   }, [preferences.theme]);
 
   const updateTheme = useCallback((theme: Theme) => {

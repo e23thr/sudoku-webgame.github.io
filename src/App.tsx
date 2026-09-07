@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { SudokuBoard, HistoryPanel } from './components';
+import { SudokuBoard, HistoryPanel, ThemeToggle } from './components';
 import { createPuzzle, loadGameState, clearGameState } from './utils';
 import { saveCompletedGame } from './utils/db';
 import { usePreferences } from './hooks/usePreferences';
 import type { Puzzle, Difficulty, SudokuGrid } from './types/sudoku';
 import type { CompletedGame } from './types/history';
+import './styles/themes.css';
+import './styles/animations.css';
 import './App.css';
 import './styles/sudoku.css';
 
@@ -15,7 +17,7 @@ function generateGameId(grid: SudokuGrid): string {
 }
 
 function App() {
-  const { preferences, updateDefaultDifficulty } = usePreferences();
+  const { preferences, updateTheme, updateDefaultDifficulty } = usePreferences();
 
   const [puzzle, setPuzzle] = useState<Puzzle>(() => {
     const saved = loadGameState();
@@ -51,13 +53,10 @@ function App() {
     setCompletedGameSaved(false);
   }, [updateDefaultDifficulty]);
 
-  // Save completed game to IndexedDB when puzzle is completed
   const handleNewPuzzleAfterCompletion = useCallback(() => {
-    // The SudokuBoard will save the game via its own effect
     handleNewPuzzle();
   }, [handleNewPuzzle]);
 
-  // Listen for storage changes (e.g., from another tab)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'sudoku-webgame-state') {
@@ -68,11 +67,9 @@ function App() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // We need SudokuBoard to communicate game completion
-  // We'll use a custom event for that
   useEffect(() => {
     const handleGameCompleted = async (e: Event) => {
-      if (completedGameSaved) return; // Don't save twice
+      if (completedGameSaved) return;
 
       const detail = (e as CustomEvent<{
         puzzle: SudokuGrid;
@@ -101,7 +98,13 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🧩 Sudoku</h1>
+        <div className="app-header-row">
+          <h1>🧩 Sudoku</h1>
+          <ThemeToggle
+            currentTheme={preferences.theme}
+            onThemeChange={updateTheme}
+          />
+        </div>
         <p className="app-subtitle">
           Difficulty: <strong>{puzzle.difficulty}</strong> ·{' '}
           {puzzle.cluesCount} clues
