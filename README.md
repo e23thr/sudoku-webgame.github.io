@@ -58,6 +58,23 @@ npm run dev
 | `npm run lint:fix` | Run ESLint with auto-fix |
 | `npm run format` | Format code with Prettier |
 
+### Docker Development
+
+Run the dev server inside Docker with live reload:
+
+```bash
+# Build and start
+docker compose up
+
+# Or run in the background
+docker compose up -d
+
+# Stop
+docker compose down
+```
+
+The app will be available at http://localhost:5173 with volume-mounted source for live reload.
+
 ## Keyboard Shortcuts
 
 | Key | Action |
