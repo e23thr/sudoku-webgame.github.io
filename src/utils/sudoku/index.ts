@@ -4,8 +4,11 @@ export {
   isValidCompleteGrid,
   hasUniqueSolution,
   countClues,
+} from './generator';
+
+export {
   isValidPlacement,
   solveSudoku,
   countSolutions,
   cloneGrid,
-} from './sudoku';
+} from './solver';
