@@ -25,6 +25,9 @@ export interface Puzzle {
   cluesCount: number;
 }
 
+/** Game status */
+export type GameStatus = 'playing' | 'paused' | 'completed';
+
 /** Difficulty clue ranges */
 export const DIFFICULTY_RANGES: Record<Difficulty, { min: number; max: number }> = {
   easy: { min: 36, max: 40 },
