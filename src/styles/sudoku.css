@@ -130,6 +130,162 @@
 }
 
 /* ================================
+   Notes Display
+   ================================ */
+
+.cell-notes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+.note-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(8px, 1.8vw, 12px);
+  font-weight: 500;
+  color: #666;
+  line-height: 1;
+}
+
+.sudoku-cell--has-notes {
+  font-size: 0;
+}
+
+/* ================================
+   Number Pad
+   ================================ */
+
+.number-pad {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+  width: min(90vw, 450px);
+}
+
+.number-pad__numbers {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 8px;
+}
+
+.number-pad__actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.number-pad__button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: clamp(18px, 5vw, 28px);
+  font-weight: 600;
+  color: #1a237e;
+  cursor: pointer;
+  padding: 12px 8px;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.number-pad__button:hover {
+  background: #e8eaf6;
+  border-color: #1976d2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.number-pad__button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Clear button */
+.number-pad__button--clear {
+  background: #ffebee;
+  border-color: #ef9a9a;
+  color: #c62828;
+}
+
+.number-pad__button--clear:hover {
+  background: #ffcdd2;
+  border-color: #ef5350;
+}
+
+/* Notes toggle button */
+.number-pad__button--notes {
+  grid-column: span 2;
+  flex-direction: row;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.number-pad__button--active {
+  background: #1976d2;
+  border-color: #1565c0;
+  color: white;
+}
+
+.number-pad__button--active:hover {
+  background: #1565c0;
+}
+
+.notes-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.notes-icon__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 16px;
+}
+
+.notes-icon__lines span {
+  display: block;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+}
+
+.notes-label {
+  font-weight: 500;
+}
+
+/* Undo/Redo buttons */
+.number-pad__button--undo,
+.number-pad__button--redo {
+  font-size: 20px;
+}
+
+.number-pad__button--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.number-pad__button--disabled:hover {
+  background: #fff;
+  border-color: #e0e0e0;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ================================
    Responsive Adjustments
    ================================ */
 
@@ -151,6 +307,23 @@
   .sudoku-cell--selected {
     box-shadow: inset 0 0 0 2px #1976d2;
   }
+
+  .note-number {
+    font-size: clamp(7px, 1.6vw, 10px);
+  }
+
+  .number-pad {
+    width: 95vw;
+  }
+
+  .number-pad__button {
+    padding: 10px 6px;
+    font-size: clamp(16px, 4.5vw, 24px);
+  }
+
+  .number-pad__button--notes {
+    font-size: 12px;
+  }
 }
 
 @media (min-width: 768px) {
@@ -158,6 +331,10 @@
     box-shadow:
       0 8px 40px rgba(26, 35, 126, 0.3),
       0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .number-pad__button {
+    padding: 14px 10px;
   }
 }
 
@@ -169,4 +346,9 @@
   outline: 2px solid #1976d2;
   outline-offset: -2px;
   z-index: 2;
+}
+
+.number-pad__button:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
 }
