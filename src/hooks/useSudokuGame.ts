@@ -1,4 +1,4 @@
-import { useReducer, useCallback, useEffect, useState } from 'react';
+import { useReducer, useCallback, useEffect, useState, useRef } from 'react';
 import type { SudokuGrid, Difficulty, GameStatus } from '../types/sudoku';
 import { saveGameState } from '../utils/storage';
 
@@ -324,6 +324,14 @@ export function useSudokuGame(options: UseSudokuGameOptions) {
     setTimer(0);
     setRawStatus('playing');
   }, []);
+
+  const prevPuzzleIdRef = useRef(puzzleId);
+  useEffect(() => {
+    if (prevPuzzleIdRef.current !== puzzleId) {
+      prevPuzzleIdRef.current = puzzleId;
+      newGame(initialPuzzle);
+    }
+  }, [puzzleId, initialPuzzle, newGame]);
 
   const pause = useCallback(() => {
     setRawStatus(prev => prev === 'playing' ? 'paused' : prev);
