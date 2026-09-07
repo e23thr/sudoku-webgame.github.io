@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { SudokuBoard, HistoryPanel } from './components';
 import { createPuzzle, loadGameState, clearGameState } from './utils';
 import { saveCompletedGame } from './utils/db';
+import { usePreferences } from './hooks/usePreferences';
 import type { Puzzle, Difficulty, SudokuGrid } from './types/sudoku';
 import type { CompletedGame } from './types/history';
 import './App.css';
@@ -14,6 +15,8 @@ function generateGameId(grid: SudokuGrid): string {
 }
 
 function App() {
+  const { preferences, updateDefaultDifficulty } = usePreferences();
+
   const [puzzle, setPuzzle] = useState<Puzzle>(() => {
     const saved = loadGameState();
     if (saved) {
@@ -25,7 +28,7 @@ function App() {
         cluesCount,
       };
     }
-    return createPuzzle('medium');
+    return createPuzzle(preferences.defaultDifficulty);
   });
 
   const [hasSavedGame, setHasSavedGame] = useState(() => loadGameState() !== null);
@@ -34,18 +37,19 @@ function App() {
 
   const handleNewPuzzle = useCallback(() => {
     clearGameState();
-    const difficulty = puzzle.difficulty;
+    const difficulty = preferences.defaultDifficulty;
     setPuzzle(createPuzzle(difficulty));
     setHasSavedGame(false);
     setCompletedGameSaved(false);
-  }, [puzzle.difficulty]);
+  }, [preferences.defaultDifficulty]);
 
   const handleDifficultyChange = useCallback((difficulty: Difficulty) => {
+    updateDefaultDifficulty(difficulty);
     clearGameState();
     setPuzzle(createPuzzle(difficulty));
     setHasSavedGame(false);
     setCompletedGameSaved(false);
-  }, []);
+  }, [updateDefaultDifficulty]);
 
   // Save completed game to IndexedDB when puzzle is completed
   const handleNewPuzzleAfterCompletion = useCallback(() => {

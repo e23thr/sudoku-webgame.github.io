@@ -1,6 +1,7 @@
 import type { SudokuGrid, Difficulty } from '../types/sudoku';
 
 const STORAGE_KEY = 'sudoku-webgame-state';
+const PREFS_KEY = 'sudoku-webgame-prefs';
 
 export interface SavedGameState {
   grid: SudokuGrid;
@@ -58,4 +59,50 @@ export function clearGameState(): void {
   } catch {
     console.warn('Failed to clear game state from localStorage');
   }
+}
+
+// ── User Preferences ────────────────────────────────────────────────
+
+export type Theme = 'light' | 'dark' | 'colorful';
+
+export interface UserPreferences {
+  theme: Theme;
+  defaultDifficulty: Difficulty;
+  soundEnabled: boolean;
+}
+
+const DEFAULT_PREFERENCES: UserPreferences = {
+  theme: 'colorful',
+  defaultDifficulty: 'medium',
+  soundEnabled: true,
+};
+
+/**
+ * Save user preferences to localStorage.
+ */
+export function savePreferences(prefs: UserPreferences): boolean {
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+    return true;
+  } catch {
+    console.warn('Failed to save preferences to localStorage');
+    return false;
+  }
+}
+
+/**
+ * Load user preferences from localStorage.
+ * Returns defaults if nothing saved or data is corrupt.
+ */
+export function loadPreferences(): UserPreferences {
+  try {
+    const saved = localStorage.getItem(PREFS_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved) as Partial<UserPreferences>;
+      return { ...DEFAULT_PREFERENCES, ...parsed };
+    }
+  } catch {
+    console.warn('Failed to load preferences from localStorage');
+  }
+  return { ...DEFAULT_PREFERENCES };
 }
