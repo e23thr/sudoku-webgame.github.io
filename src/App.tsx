@@ -1,15 +1,22 @@
-import { useState, useEffect } from 'react';
-import { SudokuBoard } from './components';
+import { useState, useEffect, useCallback } from 'react';
+import { SudokuBoard, HistoryPanel } from './components';
 import { createPuzzle, loadGameState, clearGameState } from './utils';
-import type { Puzzle, Difficulty } from './types/sudoku';
+import { saveCompletedGame } from './utils/db';
+import type { Puzzle, Difficulty, SudokuGrid } from './types/sudoku';
+import type { CompletedGame } from './types/history';
 import './App.css';
 import './styles/sudoku.css';
+
+type AppView = 'game' | 'history';
+
+function generateGameId(grid: SudokuGrid): string {
+  return grid.flat().join(',');
+}
 
 function App() {
   const [puzzle, setPuzzle] = useState<Puzzle>(() => {
     const saved = loadGameState();
     if (saved) {
-      // Reconstruct puzzle from saved state
       const cluesCount = saved.grid.flat().filter(v => v !== 0).length;
       return {
         grid: saved.grid,
@@ -22,19 +29,29 @@ function App() {
   });
 
   const [hasSavedGame, setHasSavedGame] = useState(() => loadGameState() !== null);
+  const [view, setView] = useState<AppView>('game');
+  const [completedGameSaved, setCompletedGameSaved] = useState(false);
 
-  const handleNewPuzzle = () => {
+  const handleNewPuzzle = useCallback(() => {
     clearGameState();
     const difficulty = puzzle.difficulty;
     setPuzzle(createPuzzle(difficulty));
     setHasSavedGame(false);
-  };
+    setCompletedGameSaved(false);
+  }, [puzzle.difficulty]);
 
-  const handleDifficultyChange = (difficulty: Difficulty) => {
+  const handleDifficultyChange = useCallback((difficulty: Difficulty) => {
     clearGameState();
     setPuzzle(createPuzzle(difficulty));
     setHasSavedGame(false);
-  };
+    setCompletedGameSaved(false);
+  }, []);
+
+  // Save completed game to IndexedDB when puzzle is completed
+  const handleNewPuzzleAfterCompletion = useCallback(() => {
+    // The SudokuBoard will save the game via its own effect
+    handleNewPuzzle();
+  }, [handleNewPuzzle]);
 
   // Listen for storage changes (e.g., from another tab)
   useEffect(() => {
@@ -47,6 +64,36 @@ function App() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  // We need SudokuBoard to communicate game completion
+  // We'll use a custom event for that
+  useEffect(() => {
+    const handleGameCompleted = async (e: Event) => {
+      if (completedGameSaved) return; // Don't save twice
+
+      const detail = (e as CustomEvent<{
+        puzzle: SudokuGrid;
+        solution: SudokuGrid;
+        difficulty: Difficulty;
+        timeElapsed: number;
+      }>).detail;
+
+      const game: CompletedGame = {
+        id: generateGameId(detail.solution),
+        difficulty: detail.difficulty,
+        completedAt: new Date().toISOString(),
+        timeElapsed: detail.timeElapsed,
+        puzzle: detail.puzzle,
+        solution: detail.solution,
+      };
+
+      await saveCompletedGame(game);
+      setCompletedGameSaved(true);
+    };
+
+    window.addEventListener('sudoku-game-completed', handleGameCompleted);
+    return () => window.removeEventListener('sudoku-game-completed', handleGameCompleted);
+  }, [completedGameSaved]);
+
   return (
     <div className="app">
       <header className="app-header">
@@ -58,13 +105,32 @@ function App() {
         </p>
       </header>
 
+      <nav className="app-nav">
+        <button
+          className={`btn btn--nav ${view === 'game' ? 'btn--nav-active' : ''}`}
+          onClick={() => setView('game')}
+        >
+          🎮 Game
+        </button>
+        <button
+          className={`btn btn--nav ${view === 'history' ? 'btn--nav-active' : ''}`}
+          onClick={() => setView('history')}
+        >
+          📜 History
+        </button>
+      </nav>
+
       <main className="app-main">
-        <SudokuBoard
-          puzzle={puzzle.grid}
-          solution={puzzle.solution}
-          difficulty={puzzle.difficulty}
-          onNewGame={handleNewPuzzle}
-        />
+        {view === 'game' ? (
+          <SudokuBoard
+            puzzle={puzzle.grid}
+            solution={puzzle.solution}
+            difficulty={puzzle.difficulty}
+            onNewGame={handleNewPuzzleAfterCompletion}
+          />
+        ) : (
+          <HistoryPanel />
+        )}
       </main>
 
       <footer className="app-footer">

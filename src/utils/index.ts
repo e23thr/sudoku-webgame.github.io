@@ -17,3 +17,11 @@ export {
 } from './storage';
 
 export type { SavedGameState } from './storage';
+
+export {
+  saveCompletedGame,
+  getCompletedGames,
+  clearHistory,
+  getStatistics,
+  calculateStatistics,
+} from './db';
