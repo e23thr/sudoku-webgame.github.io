@@ -53,16 +53,23 @@ export function ConfirmationModal({
       <div className="confirmation-modal" onClick={(e) => e.stopPropagation()}>
         <div className="confirmation-modal__content">
           <h2 id="confirmation-title" className="confirmation-modal__title">
-            \u26a0\ufe0f {title}
+            ⚠️ {title}
           </h2>
           <p id="confirmation-message" className="confirmation-modal__message">
             {message}
           </p>
           <div className="confirmation-modal__actions">
-            <button ref={confirmRef} className="btn btn--confirm" onClick={onConfirm}>
+            <button
+              ref={confirmRef}
+              className="btn btn--confirm"
+              onClick={onConfirm}
+            >
               {confirmLabel}
             </button>
-            <button className="btn btn--cancel" onClick={onCancel}>
+            <button
+              className="btn btn--cancel"
+              onClick={onCancel}
+            >
               {cancelLabel}
             </button>
           </div>
