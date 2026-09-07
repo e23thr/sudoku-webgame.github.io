@@ -1,5 +1,6 @@
-import { useReducer, useCallback } from 'react';
-import type { SudokuGrid } from '../types/sudoku';
+import { useReducer, useCallback, useEffect, useState } from 'react';
+import type { SudokuGrid, Difficulty, GameStatus } from '../types/sudoku';
+import { saveGameState } from '../utils/storage';
 
 export interface HistoryEntry {
   row: number;
@@ -247,8 +248,48 @@ function getInitialState(puzzle: SudokuGrid): GameState {
   };
 }
 
-export function useSudokuGame(initialPuzzle: SudokuGrid) {
+function checkCompletion(grid: SudokuGrid, solution: SudokuGrid): boolean {
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      if (grid[r][c] !== solution[r][c]) return false;
+    }
+  }
+  return true;
+}
+
+/** Generate a simple ID from grid state for puzzle identification */
+function generatePuzzleId(grid: SudokuGrid): string {
+  return grid.flat().join(',');
+}
+
+interface UseSudokuGameOptions {
+  initialPuzzle: SudokuGrid;
+  solution?: SudokuGrid;
+  difficulty?: Difficulty;
+  savedState?: {
+    grid: SudokuGrid;
+    notes: [string, number[]][];
+    timer: number;
+    puzzleId: string;
+  };
+}
+
+export function useSudokuGame(options: UseSudokuGameOptions) {
+  const { initialPuzzle, solution, difficulty = 'medium', savedState } = options;
+  const puzzleId = savedState?.puzzleId ?? generatePuzzleId(initialPuzzle);
+
   const [state, dispatch] = useReducer(gameReducer, initialPuzzle, getInitialState);
+
+  const [timer, setTimer] = useState<number>(savedState?.timer ?? 0);
+
+  // Raw status: 'playing' | 'paused' — completion is derived from grid
+  const [rawStatus, setRawStatus] = useState<'playing' | 'paused'>('playing');
+
+  // Derive completion from grid + solution
+  const isSolved = Boolean(solution && checkCompletion(state.grid, solution));
+
+  // Derive the full game status
+  const gameStatus: GameStatus = isSolved ? 'completed' : rawStatus;
 
   const setCell = useCallback((row: number, col: number, value: number) => {
     dispatch({ type: 'SET_CELL', row, col, value });
@@ -280,6 +321,23 @@ export function useSudokuGame(initialPuzzle: SudokuGrid) {
 
   const newGame = useCallback((puzzle: SudokuGrid) => {
     dispatch({ type: 'NEW_GAME', puzzle });
+    setTimer(0);
+    setRawStatus('playing');
+  }, []);
+
+  const pause = useCallback(() => {
+    setRawStatus(prev => prev === 'playing' ? 'paused' : prev);
+  }, []);
+
+  const resume = useCallback(() => {
+    setRawStatus(prev => prev === 'paused' ? 'playing' : prev);
+  }, []);
+
+  const togglePause = useCallback(() => {
+    setRawStatus(prev => {
+      if (prev === 'playing') return 'paused';
+      return 'playing';
+    });
   }, []);
 
   const getNotes = useCallback((row: number, col: number): number[] => {
@@ -290,8 +348,43 @@ export function useSudokuGame(initialPuzzle: SudokuGrid) {
     return state.givens.has(`${row},${col}`);
   }, [state.givens]);
 
+  // Timer effect
+  useEffect(() => {
+    if (gameStatus !== 'playing') return;
+
+    const interval = setInterval(() => {
+      setTimer(prev => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [gameStatus]);
+
+  // Auto-save effect
+  useEffect(() => {
+    // Don't save if no solution (unsolvable state)
+    if (!solution) return;
+
+    const notesArray: [string, number[]][] = [];
+    state.notes.forEach((value, key) => {
+      notesArray.push([key, value]);
+    });
+
+    saveGameState({
+      grid: state.grid,
+      notes: notesArray,
+      timer,
+      difficulty,
+      puzzleId,
+      solution,
+    });
+  }, [state.grid, state.notes, timer, difficulty, puzzleId, solution]);
+
   return {
     state,
+    gameStatus,
+    timer,
+    difficulty,
+    puzzleId,
     setCell,
     setNote,
     clearCell,
@@ -300,6 +393,9 @@ export function useSudokuGame(initialPuzzle: SudokuGrid) {
     redo,
     selectCell,
     newGame,
+    pause,
+    resume,
+    togglePause,
     getNotes,
     isGiven,
     canUndo: state.history.length > 0,

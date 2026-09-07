@@ -1,22 +1,30 @@
 import React, { useCallback, useEffect } from 'react';
-import type { SudokuGrid } from '../types/sudoku';
+import type { SudokuGrid, SudokuGrid as SolutionGrid, Difficulty } from '../types/sudoku';
 import { useSudokuGame } from '../hooks/useSudokuGame';
 import SudokuCell from './SudokuCell';
 import NumberPad from './NumberPad';
+import Timer from './Timer';
 import '../styles/sudoku.css';
 
 interface SudokuBoardProps {
   puzzle: SudokuGrid;
-  solution?: SudokuGrid;
+  solution?: SolutionGrid;
+  difficulty?: Difficulty;
   onCellSelect?: (row: number, col: number) => void;
+  onNewGame?: () => void;
 }
 
 const SudokuBoard: React.FC<SudokuBoardProps> = ({
   puzzle,
+  solution,
+  difficulty = 'medium',
   onCellSelect,
+  onNewGame,
 }) => {
   const {
     state,
+    gameStatus,
+    timer,
     setCell,
     setNote,
     clearCell,
@@ -24,22 +32,28 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
     undo,
     redo,
     selectCell,
+    togglePause,
     getNotes,
     isGiven,
     canUndo,
     canRedo,
-  } = useSudokuGame(puzzle);
+  } = useSudokuGame({ initialPuzzle: puzzle, solution, difficulty });
+
+  const isPaused = gameStatus === 'paused';
+  const isCompleted = gameStatus === 'completed';
 
   const handleCellClick = useCallback(
     (row: number, col: number) => {
+      if (isPaused || isCompleted) return;
       selectCell(row, col);
       onCellSelect?.(row, col);
     },
-    [selectCell, onCellSelect],
+    [selectCell, onCellSelect, isPaused, isCompleted],
   );
 
   const handleNumberInput = useCallback(
     (num: number) => {
+      if (isPaused || isCompleted) return;
       if (!state.selectedCell) return;
       
       const { row, col } = state.selectedCell;
@@ -49,14 +63,15 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
         setCell(row, col, num);
       }
     },
-    [state.selectedCell, state.notesMode, setCell, setNote],
+    [state.selectedCell, state.notesMode, setCell, setNote, isPaused, isCompleted],
   );
 
   const handleClear = useCallback(() => {
+    if (isPaused || isCompleted) return;
     if (!state.selectedCell) return;
     const { row, col } = state.selectedCell;
     clearCell(row, col);
-  }, [state.selectedCell, clearCell]);
+  }, [state.selectedCell, clearCell, isPaused, isCompleted]);
 
   // Keyboard support
   useEffect(() => {
@@ -65,6 +80,16 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
+
+      // Space to toggle pause (only when game is active)
+      if (e.key === ' ' && !isCompleted) {
+        e.preventDefault();
+        togglePause();
+        return;
+      }
+
+      // Don't process game keys when paused or completed
+      if (isPaused || isCompleted) return;
 
       // Number keys 1-9
       if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.metaKey) {
@@ -131,11 +156,32 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleNumberInput, handleClear, toggleNotes, undo, redo, state.selectedCell, selectCell]);
+  }, [handleNumberInput, handleClear, toggleNotes, undo, redo, state.selectedCell, selectCell, togglePause, isPaused, isCompleted]);
 
   return (
     <div className="sudoku-game">
-      <div className="sudoku-board">
+      <Timer
+        seconds={timer}
+        gameStatus={gameStatus}
+        onTogglePause={togglePause}
+      />
+
+      {isCompleted && (
+        <div className="completion-overlay">
+          <div className="completion-message">
+            <span className="completion-emoji">🎉</span>
+            <h2>Puzzle Complete!</h2>
+            <p>Time: {formatTime(timer)}</p>
+            {onNewGame && (
+              <button className="btn btn--new" onClick={onNewGame}>
+                New Puzzle
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className={`sudoku-board ${isPaused ? 'sudoku-board--paused' : ''}`}>
         {state.grid.map((row, rowIdx) =>
           row.map((cell, colIdx) => {
             const isSelected =
@@ -143,7 +189,7 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
             const notes = getNotes(rowIdx, colIdx);
             
             // Pre-compute highlight info
-            const highlightInfo = state.selectedCell
+            const highlightInfo = state.selectedCell && !isPaused && !isCompleted
               ? {
                   row: state.selectedCell.row,
                   col: state.selectedCell.col,
@@ -187,6 +233,14 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
         )}
       </div>
 
+      {isPaused && (
+        <div className="pause-overlay">
+          <span className="pause-icon">⏸</span>
+          <p>Game Paused</p>
+          <p className="pause-hint">Press Space or click ▶ to resume</p>
+        </div>
+      )}
+
       <NumberPad
         onNumberSelect={handleNumberInput}
         onClear={handleClear}
@@ -200,5 +254,11 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
     </div>
   );
 };
+
+function formatTime(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
 
 export default SudokuBoard;
