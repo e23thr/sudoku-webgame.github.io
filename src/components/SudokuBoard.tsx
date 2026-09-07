@@ -14,7 +14,6 @@ interface SudokuBoardProps {
   onNewGame?: () => void;
 }
 
-// Pre-generate confetti pieces outside React to avoid impure render
 function generateConfettiPieces(): Array<{ id: number; left: string; delay: string; color: string; duration: string; size: string }> {
   const colors = ['#f43f5e', '#6366f1', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4', '#8b5cf6'];
   return Array.from({ length: 50 }, (_, i) => ({
@@ -57,11 +56,10 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
   const isPaused = gameStatus === 'paused';
   const isCompleted = gameStatus === 'completed';
 
-  // Animation state — set in event handlers, not in effects
   const [inputAnimKey, setInputAnimKey] = useState(0);
   const [animCells, setAnimCells] = useState<Map<string, 'correct' | 'incorrect'>>(new Map());
+  const [wrongCells, setWrongCells] = useState<Set<string>>(new Set());
 
-  // Swipe gesture state for notes mode toggle
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const [swipeIndicator, setSwipeIndicator] = useState<'left' | 'right' | null>(null);
 
@@ -86,14 +84,17 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
         setCell(row, col, num);
       }
 
-      // Trigger input animation
       setInputAnimKey(k => k + 1);
 
-      // Track correct/incorrect for animation (only for value cells, not notes)
       if (!state.notesMode && num > 0 && state.grid[row][col] !== num) {
         const cellKey = `${row},${col}`;
         if (solution && num === solution[row][col]) {
           setAnimCells(prev => new Map(prev).set(cellKey, 'correct'));
+          setWrongCells(prev => {
+            const next = new Set(prev);
+            next.delete(cellKey);
+            return next;
+          });
           setTimeout(() => {
             setAnimCells(prev => {
               const next = new Map(prev);
@@ -103,6 +104,7 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
           }, 500);
         } else {
           setAnimCells(prev => new Map(prev).set(cellKey, 'incorrect'));
+          setWrongCells(prev => new Set(prev).add(cellKey));
           setTimeout(() => {
             setAnimCells(prev => {
               const next = new Map(prev);
@@ -121,258 +123,111 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
     if (!state.selectedCell) return;
     const { row, col } = state.selectedCell;
     clearCell(row, col);
+    setWrongCells(prev => {
+      const next = new Set(prev);
+      next.delete(`${row},${col}`);
+      return next;
+    });
   }, [state.selectedCell, clearCell, isPaused, isCompleted]);
 
-  // Swipe gesture handlers for notes mode toggle
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (isPaused || isCompleted) return;
-    touchStartRef.current = {
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY,
-    };
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
   }, [isPaused, isCompleted]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (isPaused || isCompleted || !touchStartRef.current) return;
-    
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
     const diffX = touchEndX - touchStartRef.current.x;
     const diffY = touchEndY - touchStartRef.current.y;
-    
-    // Only process horizontal swipes (ignore vertical)
     if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
       const direction = diffX > 0 ? 'right' : 'left';
       setSwipeIndicator(direction);
       toggleNotes();
-      
-      // Clear indicator after animation
       setTimeout(() => setSwipeIndicator(null), 300);
     }
-    
     touchStartRef.current = null;
   }, [isPaused, isCompleted, toggleNotes]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    // Prevent scrolling during swipe gestures on the board
-    if (touchStartRef.current) {
-      e.preventDefault();
-    }
+    if (touchStartRef.current) { e.preventDefault(); }
   }, []);
 
   const handleCompletionNewGame = useCallback(() => {
-    window.dispatchEvent(
-      new CustomEvent('sudoku-game-completed', {
-        detail: {
-          puzzle: state.grid,
-          solution: solution!,
-          difficulty,
-          timeElapsed: timer,
-        },
-      }),
-    );
+    window.dispatchEvent(new CustomEvent('sudoku-game-completed', {
+      detail: { puzzle: state.grid, solution: solution!, difficulty, timeElapsed: timer },
+    }));
     onNewGame?.();
   }, [state.grid, solution, difficulty, timer, onNewGame]);
 
-  // Keyboard support
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      if (e.key === ' ' && !isCompleted) {
-        e.preventDefault();
-        togglePause();
-        return;
-      }
-
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === ' ' && !isCompleted) { e.preventDefault(); togglePause(); return; }
       if (isPaused || isCompleted) return;
-
-      if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault();
-        handleNumberInput(parseInt(e.key));
-        return;
-      }
-
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        e.preventDefault();
-        handleClear();
-        return;
-      }
-
-      if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault();
-        toggleNotes();
-        return;
-      }
-
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        undo();
-        return;
-      }
-
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
-        e.preventDefault();
-        redo();
-        return;
-      }
-
-      if (state.selectedCell && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); handleNumberInput(parseInt(e.key)); return; }
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); handleClear(); return; }
+      if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey) { e.preventDefault(); toggleNotes(); return; }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return; }
+      if (state.selectedCell && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
         e.preventDefault();
         const { row, col } = state.selectedCell;
-        let newRow = row;
-        let newCol = col;
-
+        let newRow = row, newCol = col;
         switch (e.key) {
           case 'ArrowUp': newRow = Math.max(0, row - 1); break;
           case 'ArrowDown': newRow = Math.min(8, row + 1); break;
           case 'ArrowLeft': newCol = Math.max(0, col - 1); break;
           case 'ArrowRight': newCol = Math.min(8, col + 1); break;
         }
-
         selectCell(newRow, newCol);
-        return;
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleNumberInput, handleClear, toggleNotes, undo, redo, state.selectedCell, selectCell, togglePause, isPaused, isCompleted]);
 
   return (
     <div className="sudoku-game">
-      <Timer
-        seconds={timer}
-        gameStatus={gameStatus}
-        onTogglePause={togglePause}
-      />
-
+      <Timer seconds={timer} gameStatus={gameStatus} onTogglePause={togglePause} />
       {isCompleted && (
         <div className="completion-overlay">
           <div className="completion-message">
             <span className="completion-emoji">🎉</span>
             <h2>Puzzle Complete!</h2>
             <p>Time: {formatTime(timer)}</p>
-            {onNewGame && (
-              <button className="btn btn--new" onClick={handleCompletionNewGame}>
-                New Puzzle
-              </button>
-            )}
+            {onNewGame && <button className="btn btn--new" onClick={handleCompletionNewGame}>New Puzzle</button>}
           </div>
         </div>
       )}
-
       {isCompleted && (
         <div className="confetti-container">
           {CONFETTI_PIECES.map(piece => (
-            <div
-              key={piece.id}
-              className="confetti-piece"
-              style={{
-                left: piece.left,
-                backgroundColor: piece.color,
-                animationDuration: piece.duration,
-                animationDelay: piece.delay,
-                width: piece.size,
-                height: piece.size,
-              }}
-            />
+            <div key={piece.id} className="confetti-piece" style={{ left: piece.left, backgroundColor: piece.color, animationDuration: piece.duration, animationDelay: piece.delay, width: piece.size, height: piece.size }} />
           ))}
         </div>
       )}
-
-      <div 
-        className={`sudoku-board ${isPaused ? 'sudoku-board--paused' : ''} ${isCompleted ? 'sudoku-board--victory' : ''}`}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onTouchMove={handleTouchMove}
-      >
-        {swipeIndicator && (
-          <div className={`swipe-indicator swipe-indicator--${swipeIndicator}`}>
-            {swipeIndicator === 'left' ? '← Notes' : 'Notes →'}
-          </div>
-        )}
-        {state.grid.map((row, rowIdx) =>
-          row.map((cell, colIdx) => {
-            const isSelected =
-              state.selectedCell?.row === rowIdx && state.selectedCell?.col === colIdx;
-            const notes = getNotes(rowIdx, colIdx);
-
-            const highlightInfo = state.selectedCell && !isPaused && !isCompleted
-              ? {
-                  row: state.selectedCell.row,
-                  col: state.selectedCell.col,
-                  boxRow: Math.floor(state.selectedCell.row / 3) * 3,
-                  boxCol: Math.floor(state.selectedCell.col / 3) * 3,
-                  value: state.grid[state.selectedCell.row][state.selectedCell.col],
-                }
-              : null;
-
-            const isHighlighted = highlightInfo
-              ? (rowIdx === highlightInfo.row ||
-                 colIdx === highlightInfo.col ||
-                 (rowIdx >= highlightInfo.boxRow &&
-                  rowIdx < highlightInfo.boxRow + 3 &&
-                  colIdx >= highlightInfo.boxCol &&
-                  colIdx < highlightInfo.boxCol + 3)) &&
-                !isSelected
-              : false;
-
-            const isSameNumber = highlightInfo
-              ? highlightInfo.value !== 0 &&
-                state.grid[rowIdx][colIdx] === highlightInfo.value &&
-                !(rowIdx === highlightInfo.row && colIdx === highlightInfo.col)
-              : false;
-
-            const cellKey = `${rowIdx},${colIdx}`;
-            const animState = animCells.get(cellKey);
-
-            return (
-              <SudokuCell
-                key={`${rowIdx}-${colIdx}`}
-                row={rowIdx}
-                col={colIdx}
-                value={cell}
-                isGiven={isGiven(rowIdx, colIdx)}
-                isSelected={isSelected}
-                isHighlighted={isHighlighted}
-                isSameNumber={isSameNumber}
-                isCorrect={animState === 'correct'}
-                isIncorrect={animState === 'incorrect'}
-                inputKey={inputAnimKey}
-                notes={notes}
-                onClick={handleCellClick}
-              />
-            );
-          }),
-        )}
+      <div className={`sudoku-board ${isPaused ? 'sudoku-board--paused' : ''} ${isCompleted ? 'sudoku-board--victory' : ''}`} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onTouchMove={handleTouchMove}>
+        {swipeIndicator && <div className={`swipe-indicator swipe-indicator--${swipeIndicator}`}>{swipeIndicator === 'left' ? '← Notes' : 'Notes →'}</div>}
+        {state.grid.map((row, rowIdx) => row.map((cell, colIdx) => {
+          const isSelected = state.selectedCell?.row === rowIdx && state.selectedCell?.col === colIdx;
+          const notes = getNotes(rowIdx, colIdx);
+          const highlightInfo = state.selectedCell && !isPaused && !isCompleted ? { row: state.selectedCell.row, col: state.selectedCell.col, boxRow: Math.floor(state.selectedCell.row / 3) * 3, boxCol: Math.floor(state.selectedCell.col / 3) * 3, value: state.grid[state.selectedCell.row][state.selectedCell.col] } : null;
+          const isHighlighted = highlightInfo ? (rowIdx === highlightInfo.row || colIdx === highlightInfo.col || (rowIdx >= highlightInfo.boxRow && rowIdx < highlightInfo.boxRow + 3 && colIdx >= highlightInfo.boxCol && colIdx < highlightInfo.boxCol + 3)) && !isSelected : false;
+          const isSameNumber = highlightInfo ? highlightInfo.value !== 0 && state.grid[rowIdx][colIdx] === highlightInfo.value && !(rowIdx === highlightInfo.row && colIdx === highlightInfo.col) : false;
+          const cellKey = `${rowIdx},${colIdx}`;
+          const animState = animCells.get(cellKey);
+          return <SudokuCell key={`${rowIdx}-${colIdx}`} row={rowIdx} col={colIdx} value={cell} isGiven={isGiven(rowIdx, colIdx)} isSelected={isSelected} isHighlighted={isHighlighted} isSameNumber={isSameNumber} isCorrect={animState === 'correct'} isIncorrect={animState === 'incorrect'} isWrong={wrongCells.has(cellKey)} inputKey={inputAnimKey} notes={notes} onClick={handleCellClick} />;
+        }))}
       </div>
-
-      {isPaused && (
-        <div className="pause-overlay">
-          <span className="pause-icon">⏸</span>
-          <p>Game Paused</p>
-          <p className="pause-hint">Press Space or click ▶ to resume</p>
-        </div>
-      )}
-
-      <NumberPad
-        onNumberSelect={handleNumberInput}
-        onClear={handleClear}
-        notesMode={state.notesMode}
-        onToggleNotes={toggleNotes}
-        onUndo={undo}
-        onRedo={redo}
-        canUndo={canUndo}
-        canRedo={canRedo}
-      />
+      {isPaused && <div className="pause-overlay"><span className="pause-icon">⏸</span><p>Game Paused</p><p className="pause-hint">Press Space or click ▶ to resume</p></div>}
+      <NumberPad onNumberSelect={handleNumberInput} onClear={handleClear} notesMode={state.notesMode} onToggleNotes={toggleNotes} onUndo={undo} onRedo={redo} canUndo={canUndo} canRedo={canRedo} />
     </div>
   );
 };
 
-function formatTime(totalSeconds: number): string {
+function formatTime(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
