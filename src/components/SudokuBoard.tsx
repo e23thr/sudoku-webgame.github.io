@@ -51,6 +51,21 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
     [selectCell, onCellSelect, isPaused, isCompleted],
   );
 
+  const handleCompletionNewGame = useCallback(() => {
+    // Dispatch completion event before navigating away
+    window.dispatchEvent(
+      new CustomEvent('sudoku-game-completed', {
+        detail: {
+          puzzle: state.grid,
+          solution: solution!,
+          difficulty,
+          timeElapsed: timer,
+        },
+      }),
+    );
+    onNewGame?.();
+  }, [state.grid, solution, difficulty, timer, onNewGame]);
+
   const handleNumberInput = useCallback(
     (num: number) => {
       if (isPaused || isCompleted) return;
@@ -173,7 +188,7 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
             <h2>Puzzle Complete!</h2>
             <p>Time: {formatTime(timer)}</p>
             {onNewGame && (
-              <button className="btn btn--new" onClick={onNewGame}>
+              <button className="btn btn--new" onClick={handleCompletionNewGame}>
                 New Puzzle
               </button>
             )}

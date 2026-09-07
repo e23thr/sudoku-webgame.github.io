@@ -110,3 +110,279 @@
     font-size: 0.875rem;
   }
 }
+
+/* ================================
+   Navigation Tabs
+   ================================ */
+
+.app-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.btn--nav {
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid #c5cae9;
+  background: #fff;
+  color: #3949ab;
+  transition: all 0.15s ease;
+}
+
+.btn--nav:hover {
+  background: #e8eaf6;
+  border-color: #7986cb;
+}
+
+.btn--nav-active {
+  background: #3949ab;
+  border-color: #3949ab;
+  color: white;
+}
+
+.btn--nav-active:hover {
+  background: #303f9f;
+}
+
+/* ================================
+   History Panel
+   ================================ */
+
+.history-panel {
+  width: min(90vw, 500px);
+}
+
+.history-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.history-panel__header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a237e;
+  margin: 0;
+}
+
+.btn--danger {
+  background: #ef5350;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s ease;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: #c62828;
+}
+
+.btn--danger:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ================================
+   Statistics Card
+   ================================ */
+
+.stats-card {
+  background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+  border: 2px solid #7986cb;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.stats-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a237e;
+  margin: 0 0 1rem 0;
+}
+
+.stats-card__summary {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 1rem;
+}
+
+.stats-card__stat {
+  text-align: center;
+}
+
+.stats-card__stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1a237e;
+}
+
+.stats-card__stat-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #5c6bc0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stats-card__times {
+  border-top: 1px solid #c5cae9;
+  padding-top: 0.75rem;
+}
+
+.stats-card__section-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #5c6bc0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0.75rem 0 0.5rem 0;
+}
+
+.stats-card__section-title:first-child {
+  margin-top: 0;
+}
+
+.stats-card__time-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+}
+
+.stats-card__time-label {
+  font-size: 0.875rem;
+  color: #333;
+}
+
+.stats-card__time-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a237e;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ================================
+   History Filter
+   ================================ */
+
+.history-panel__filter {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+
+.btn--filter {
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid #e0e0e0;
+  background: #fff;
+  color: #666;
+  transition: all 0.15s ease;
+}
+
+.btn--filter:hover {
+  background: #f5f5f5;
+  border-color: #bdbdbd;
+}
+
+.btn--filter-active {
+  background: #1976d2;
+  border-color: #1976d2;
+  color: white;
+}
+
+.btn--filter-active:hover {
+  background: #1565c0;
+}
+
+/* ================================
+   History List
+   ================================ */
+
+.history-panel__list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.history-panel__empty {
+  text-align: center;
+  color: #999;
+  padding: 2rem 1rem;
+  font-size: 0.9rem;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.1s ease;
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.history-item:hover {
+  background: #f8f9fa;
+}
+
+.history-item__difficulty {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  min-width: 60px;
+  text-align: center;
+}
+
+.history-item__time {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #333;
+  font-variant-numeric: tabular-nums;
+}
+
+.history-item__date {
+  font-size: 0.8rem;
+  color: #999;
+  margin-left: auto;
+}
+
+@media (max-width: 480px) {
+  .history-panel__header {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .history-item {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .history-item__date {
+    margin-left: 0;
+    width: 100%;
+  }
+}
