@@ -285,7 +285,7 @@
 
 /* Notes toggle button */
 .number-pad__button--notes {
-  grid-column: span 2;
+  /* grid-column: span 2; */
   flex-direction: row;
   gap: clamp(4px, 1.2vw, 8px);
   font-size: clamp(12px, 3vw, 14px);
@@ -685,8 +685,13 @@
    ================================ */
 
 .difficulty-buttons {
+  width: 100%;
   display: flex;
   gap: 8px;
+}
+
+.difficulty-buttons > * {
+  flex: 1;
 }
 
 .btn--difficulty {

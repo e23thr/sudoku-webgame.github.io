@@ -67,7 +67,8 @@
 .app-footer {
   display: flex;
   gap: 1rem;
-  justify-content: center;
+  width: 100%
+  /* justify-content: center; */
 }
 
 .btn {

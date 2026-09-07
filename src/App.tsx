@@ -188,7 +188,7 @@ function App() {
           onClick={handleNewPuzzle}
           aria-label="Generate new puzzle"
         >
-          New Puzzle
+          New
         </button>
         </div>
       </footer>
