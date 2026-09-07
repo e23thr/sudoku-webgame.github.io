@@ -10,6 +10,7 @@ interface SudokuCellProps {
   isSameNumber: boolean;
   isCorrect?: boolean;
   isIncorrect?: boolean;
+  isWrong?: boolean;
   inputKey?: number;
   notes?: number[];
   onClick: (row: number, col: number) => void;
@@ -25,12 +26,11 @@ const SudokuCell: React.FC<SudokuCellProps> = ({
   isSameNumber,
   isCorrect = false,
   isIncorrect = false,
+  isWrong = false,
   inputKey = 0,
   notes = [],
   onClick,
 }) => {
-  // Use a string key for animation — when inputKey changes and value > 0,
-  // append a unique suffix so React remounts the inner span, triggering CSS animation.
   const valueKey = value > 0 && inputKey > 0 ? `${value}-${inputKey}` : `${value}`;
 
   const classNames = [
@@ -42,6 +42,7 @@ const SudokuCell: React.FC<SudokuCellProps> = ({
     value === 0 && notes.length > 0 && 'sudoku-cell--has-notes',
     isCorrect && 'sudoku-cell--correct',
     isIncorrect && 'sudoku-cell--incorrect',
+    isWrong && !isIncorrect && 'sudoku-cell--wrong',
   ]
     .filter(Boolean)
     .join(' ');

@@ -136,6 +136,21 @@
 }
 
 /* ================================
+   Wrong Input (persistent red)
+   ================================ */
+
+.sudoku-cell--wrong {
+  background: var(--incorrect-flash) !important;
+  color: var(--incorrect) !important;
+  font-weight: 600;
+}
+
+.sudoku-cell--wrong.sudoku-cell--given {
+  background: var(--incorrect-flash);
+  color: var(--incorrect);
+}
+
+/* ================================
    Notes Display
    ================================ */
 
