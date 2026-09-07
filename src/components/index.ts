@@ -6,3 +6,5 @@ export { default as HistoryPanel } from './HistoryPanel';
 export { default as StatisticsCard } from './StatisticsCard';
 export { default as ThemeToggle } from './ThemeToggle';
 export { default as ErrorBoundary } from './ErrorBoundary';
+export { ConfirmationModal } from './ConfirmationModal';
+export { ConfirmationModal } from './ConfirmationModal';
