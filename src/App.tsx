@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { SudokuBoard, HistoryPanel, ThemeToggle } from './components';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { SudokuBoard, ThemeToggle } from './components';
 import { createPuzzle, loadGameState, clearGameState } from './utils';
 import { saveCompletedGame } from './utils/db';
 import { usePreferences } from './hooks/usePreferences';
@@ -9,11 +9,23 @@ import './styles/themes.css';
 import './styles/animations.css';
 import './App.css';
 import './styles/sudoku.css';
+import './styles/loading.css';
+
+const HistoryPanel = lazy(() => import('./components/HistoryPanel'));
 
 type AppView = 'game' | 'history';
 
 function generateGameId(grid: SudokuGrid): string {
   return grid.flat().join(',');
+}
+
+function LoadingSpinner() {
+  return (
+    <div className="loading-spinner" role="status" aria-label="Loading">
+      <div className="loading-spinner__circle" />
+      <p className="loading-spinner__text">Loading...</p>
+    </div>
+  );
 }
 
 function App() {
@@ -112,22 +124,24 @@ function App() {
         </p>
       </header>
 
-      <nav className="app-nav">
+      <nav className="app-nav" aria-label="Game navigation">
         <button
           className={`btn btn--nav ${view === 'game' ? 'btn--nav-active' : ''}`}
           onClick={() => setView('game')}
+          aria-current={view === 'game' ? 'page' : undefined}
         >
           🎮 Game
         </button>
         <button
           className={`btn btn--nav ${view === 'history' ? 'btn--nav-active' : ''}`}
           onClick={() => setView('history')}
+          aria-current={view === 'history' ? 'page' : undefined}
         >
           📜 History
         </button>
       </nav>
 
-      <main className="app-main">
+      <main className="app-main" aria-live="polite">
         {view === 'game' ? (
           <SudokuBoard
             puzzle={puzzle.grid}
@@ -136,23 +150,31 @@ function App() {
             onNewGame={handleNewPuzzleAfterCompletion}
           />
         ) : (
-          <HistoryPanel />
+          <Suspense fallback={<LoadingSpinner />}>
+            <HistoryPanel />
+          </Suspense>
         )}
       </main>
 
       <footer className="app-footer">
-        <div className="difficulty-buttons">
+        <div className="difficulty-buttons" role="group" aria-label="Difficulty selection">
           {(['easy', 'medium', 'hard'] as Difficulty[]).map(d => (
             <button
               key={d}
               className={`btn btn--difficulty ${puzzle.difficulty === d ? 'btn--difficulty-active' : ''}`}
               onClick={() => handleDifficultyChange(d)}
+              aria-pressed={puzzle.difficulty === d}
+              aria-label={`Select ${d} difficulty`}
             >
               {d.charAt(0).toUpperCase() + d.slice(1)}
             </button>
           ))}
         </div>
-        <button className="btn btn--new" onClick={handleNewPuzzle}>
+        <button
+          className="btn btn--new"
+          onClick={handleNewPuzzle}
+          aria-label="Generate new puzzle"
+        >
           New Puzzle
         </button>
       </footer>

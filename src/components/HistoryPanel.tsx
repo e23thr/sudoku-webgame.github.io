@@ -23,6 +23,12 @@ const DIFFICULTY_COLORS: Record<Difficulty, string> = {
   hard: '#f44336',
 };
 
+function SkeletonCard() {
+  return (
+    <div className="skeleton skeleton--card" aria-hidden="true" />
+  );
+}
+
 const HistoryPanel: React.FC = () => {
   const [games, setGames] = useState<CompletedGame[]>([]);
   const [statistics, setStatistics] = useState<GameStatistics | null>(null);
@@ -59,60 +65,71 @@ const HistoryPanel: React.FC = () => {
   }, []);
 
   return (
-    <div className="history-panel">
+    <div className="history-panel" aria-label="Game history">
       <div className="history-panel__header">
         <h2>📜 History & Statistics</h2>
         <button
           className="btn btn--danger btn--small"
           onClick={handleClearHistory}
           disabled={games.length === 0}
+          aria-label="Clear all game history"
         >
           Clear History
         </button>
       </div>
 
-      {statistics && <StatisticsCard statistics={statistics} />}
+      {loading ? (
+        <div role="status" aria-label="Loading history">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <span className="sr-only">Loading history...</span>
+        </div>
+      ) : (
+        <>
+          {statistics && <StatisticsCard statistics={statistics} />}
 
-      <div className="history-panel__filter">
-        {DIFFICULTY_OPTIONS.map(opt => (
-          <button
-            key={opt.value}
-            className={`btn btn--filter ${filter === opt.value ? 'btn--filter-active' : ''}`}
-            onClick={() => setFilter(opt.value)}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="history-panel__list">
-        {loading ? (
-          <p className="history-panel__empty">Loading…</p>
-        ) : games.length === 0 ? (
-          <p className="history-panel__empty">
-            {filter === 'all'
-              ? 'No completed games yet. Play a game to see your history!'
-              : `No completed ${filter} games.`}
-          </p>
-        ) : (
-          games.map(game => (
-            <div key={game.id} className="history-item">
-              <span
-                className="history-item__difficulty"
-                style={{ backgroundColor: DIFFICULTY_COLORS[game.difficulty] }}
+          <div className="history-panel__filter" role="group" aria-label="Filter by difficulty">
+            {DIFFICULTY_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                className={`btn btn--filter ${filter === opt.value ? 'btn--filter-active' : ''}`}
+                onClick={() => setFilter(opt.value)}
+                aria-pressed={filter === opt.value}
               >
-                {game.difficulty.charAt(0).toUpperCase() + game.difficulty.slice(1)}
-              </span>
-              <span className="history-item__time">
-                ⏱ {formatTime(game.timeElapsed)}
-              </span>
-              <span className="history-item__date">
-                📅 {new Date(game.completedAt).toLocaleDateString()}
-              </span>
-            </div>
-          ))
-        )}
-      </div>
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="history-panel__list" role="list" aria-label="Completed games">
+            {games.length === 0 ? (
+              <p className="history-panel__empty">
+                {filter === 'all'
+                  ? 'No completed games yet. Play a game to see your history!'
+                  : `No completed ${filter} games.`}
+              </p>
+            ) : (
+              games.map(game => (
+                <div key={game.id} className="history-item" role="listitem">
+                  <span
+                    className="history-item__difficulty"
+                    style={{ backgroundColor: DIFFICULTY_COLORS[game.difficulty] }}
+                  >
+                    {game.difficulty.charAt(0).toUpperCase() + game.difficulty.slice(1)}
+                  </span>
+                  <span className="history-item__time">
+                    ⏱ {formatTime(game.timeElapsed)}
+                  </span>
+                  <span className="history-item__date">
+                    📅 {new Date(game.completedAt).toLocaleDateString()}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };
