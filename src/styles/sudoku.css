@@ -1,0 +1,172 @@
+/* ================================
+   Sudoku Board Styles
+   ================================ */
+
+.sudoku-board {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  width: min(90vw, 450px);
+  aspect-ratio: 1;
+  border: 3px solid #1a237e;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #1a237e;
+  gap: 1px;
+  box-shadow:
+    0 4px 24px rgba(26, 35, 126, 0.25),
+    0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ================================
+   Cell Base
+   ================================ */
+
+.sudoku-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+  color: #212121;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: clamp(16px, 4vw, 28px);
+  font-weight: 400;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.sudoku-cell:hover:not(.sudoku-cell--given) {
+  background: #e8eaf6;
+}
+
+.sudoku-cell:active {
+  transform: scale(0.97);
+}
+
+/* ================================
+   3×3 Box Borders (thicker lines)
+   Using nth-child selectors
+   ================================ */
+
+/* Right border for cells 3, 6 in each row group (columns 2, 5) */
+.sudoku-cell:nth-child(3n) {
+  border-right: 2px solid #1a237e;
+}
+.sudoku-cell:nth-child(9n) {
+  border-right: none;
+}
+
+/* Bottom border for rows 2-3, 5-6 (index rows 2, 3, 5, 6) — 0-indexed: rows ending at index 26, 27, 53, 54 */
+.sudoku-cell:nth-child(n+19):nth-child(-n+27) {
+  border-bottom: 2px solid #1a237e;
+}
+.sudoku-cell:nth-child(n+46):nth-child(-n+54) {
+  border-bottom: 2px solid #1a237e;
+}
+
+/* Remove double borders at intersections */
+.sudoku-cell:nth-child(9n) {
+  border-right: none;
+}
+
+/* ================================
+   Given Numbers (pre-filled, non-editable)
+   ================================ */
+
+.sudoku-cell--given {
+  font-weight: 700;
+  color: #1a237e;
+  background: #e8eaf6;
+  cursor: default;
+}
+
+.sudoku-cell--given:hover {
+  background: #e8eaf6;
+}
+
+/* ================================
+   Selected Cell
+   ================================ */
+
+.sudoku-cell--selected {
+  background: #bbdefb !important;
+  color: #0d47a1;
+  font-weight: 700;
+  z-index: 1;
+  box-shadow: inset 0 0 0 2px #1976d2;
+}
+
+/* ================================
+   Highlighted Cells (same row/col/box)
+   ================================ */
+
+.sudoku-cell--highlighted {
+  background: #e3f2fd;
+}
+
+.sudoku-cell--highlighted.sudoku-cell--given {
+  background: #bbdefb;
+}
+
+/* ================================
+   Same Number Highlight
+   ================================ */
+
+.sudoku-cell--same-number {
+  background: #c8e6c9 !important;
+}
+
+.sudoku-cell--same-number.sudoku-cell--given {
+  background: #a5d6a7;
+  font-weight: 800;
+}
+
+/* ================================
+   Responsive Adjustments
+   ================================ */
+
+@media (max-width: 480px) {
+  .sudoku-board {
+    width: 95vw;
+    border-width: 2px;
+    gap: 1px;
+  }
+
+  .sudoku-cell {
+    font-size: clamp(14px, 4.5vw, 22px);
+  }
+
+  .sudoku-cell--given {
+    color: #1a237e;
+  }
+
+  .sudoku-cell--selected {
+    box-shadow: inset 0 0 0 2px #1976d2;
+  }
+}
+
+@media (min-width: 768px) {
+  .sudoku-board {
+    box-shadow:
+      0 8px 40px rgba(26, 35, 126, 0.3),
+      0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* ================================
+   Accessibility: Focus visible
+   ================================ */
+
+.sudoku-cell:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: -2px;
+  z-index: 2;
+}
