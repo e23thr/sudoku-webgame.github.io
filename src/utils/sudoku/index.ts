@@ -11,4 +11,5 @@ export {
   solveSudoku,
   countSolutions,
   cloneGrid,
+  getHint,
 } from './solver';
