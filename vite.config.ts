@@ -4,7 +4,7 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/sudoku-webgame.github.io/',
+  base: '/sudoku-webgame/',
   plugins: [react()],
   test: {
     globals: true,
