@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import type { SudokuGrid, SudokuGrid as SolutionGrid, Difficulty } from '../types/sudoku';
 import { useSudokuGame } from '../hooks/useSudokuGame';
 import SudokuCell from './SudokuCell';
@@ -61,6 +61,10 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
   const [inputAnimKey, setInputAnimKey] = useState(0);
   const [animCells, setAnimCells] = useState<Map<string, 'correct' | 'incorrect'>>(new Map());
 
+  // Swipe gesture state for notes mode toggle
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [swipeIndicator, setSwipeIndicator] = useState<'left' | 'right' | null>(null);
+
   const handleCellClick = useCallback(
     (row: number, col: number) => {
       if (isPaused || isCompleted) return;
@@ -118,6 +122,43 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
     const { row, col } = state.selectedCell;
     clearCell(row, col);
   }, [state.selectedCell, clearCell, isPaused, isCompleted]);
+
+  // Swipe gesture handlers for notes mode toggle
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (isPaused || isCompleted) return;
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
+  }, [isPaused, isCompleted]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (isPaused || isCompleted || !touchStartRef.current) return;
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const diffX = touchEndX - touchStartRef.current.x;
+    const diffY = touchEndY - touchStartRef.current.y;
+    
+    // Only process horizontal swipes (ignore vertical)
+    if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+      const direction = diffX > 0 ? 'right' : 'left';
+      setSwipeIndicator(direction);
+      toggleNotes();
+      
+      // Clear indicator after animation
+      setTimeout(() => setSwipeIndicator(null), 300);
+    }
+    
+    touchStartRef.current = null;
+  }, [isPaused, isCompleted, toggleNotes]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    // Prevent scrolling during swipe gestures on the board
+    if (touchStartRef.current) {
+      e.preventDefault();
+    }
+  }, []);
 
   const handleCompletionNewGame = useCallback(() => {
     window.dispatchEvent(
@@ -242,7 +283,17 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
         </div>
       )}
 
-      <div className={`sudoku-board ${isPaused ? 'sudoku-board--paused' : ''} ${isCompleted ? 'sudoku-board--victory' : ''}`}>
+      <div 
+        className={`sudoku-board ${isPaused ? 'sudoku-board--paused' : ''} ${isCompleted ? 'sudoku-board--victory' : ''}`}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchMove={handleTouchMove}
+      >
+        {swipeIndicator && (
+          <div className={`swipe-indicator swipe-indicator--${swipeIndicator}`}>
+            {swipeIndicator === 'left' ? '← Notes' : 'Notes →'}
+          </div>
+        )}
         {state.grid.map((row, rowIdx) =>
           row.map((cell, colIdx) => {
             const isSelected =

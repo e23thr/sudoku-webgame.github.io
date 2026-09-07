@@ -15,6 +15,11 @@
   background: var(--board-gap);
   gap: 1px;
   box-shadow: var(--board-shadow);
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ================================
@@ -39,8 +44,13 @@
     transform 0.1s ease,
     box-shadow 0.2s ease;
   position: relative;
-  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 36px;
+  min-height: 36px;
 }
 
 .sudoku-cell:hover:not(.sudoku-cell--given) {
@@ -184,6 +194,7 @@
   gap: 12px;
   margin-top: 16px;
   width: min(90vw, 450px);
+  touch-action: manipulation;
 }
 
 .number-pad__numbers {
@@ -214,6 +225,10 @@
   padding: 12px 8px;
   transition: all 0.15s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .number-pad__button:hover {
@@ -224,7 +239,8 @@
 }
 
 .number-pad__button:active {
-  transform: translateY(0);
+  transform: scale(0.95) translateY(0);
+  opacity: 0.85;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
@@ -315,6 +331,8 @@
 
   .sudoku-cell {
     font-size: clamp(14px, 4.5vw, 22px);
+    min-width: 40px;
+    min-height: 40px;
   }
 
   .sudoku-cell--given {
@@ -331,15 +349,38 @@
 
   .number-pad {
     width: 95vw;
+    padding: 8px;
   }
 
   .number-pad__button {
-    padding: 10px 6px;
+    padding: 12px 8px;
     font-size: clamp(16px, 4.5vw, 24px);
+    min-width: 48px;
+    min-height: 48px;
   }
 
   .number-pad__button--notes {
     font-size: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .sudoku-board {
+    width: 98vw;
+  }
+
+  .sudoku-cell {
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .number-pad {
+    width: 98vw;
+  }
+
+  .number-pad__button {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 
@@ -567,6 +608,48 @@
   color: var(--saved-badge-color);
   font-weight: 600;
   font-size: 0.875rem;
+}
+
+/* ================================
+   Swipe Indicator (Mobile)
+   ================================ */
+
+.swipe-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--primary);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 10;
+  pointer-events: none;
+  animation: swipeFadeIn 0.3s ease;
+}
+
+.swipe-indicator--left {
+  left: 10px;
+}
+
+.swipe-indicator--right {
+  right: 10px;
+}
+
+@keyframes swipeFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
 }
 
 /* ================================
