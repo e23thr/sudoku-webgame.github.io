@@ -1,32 +1,21 @@
-# Issue #24: Add Visible Play/Resume Button When Game is Paused
+# Plan: Fix #24 — Add visible play/resume button when game is paused
+
+## Branch
+`fix-24-pause-button-v2` off `main`
 
 ## Problem
-When the game was paused, the only way to resume was pressing Space on the keyboard. The pause overlay said "Press Space or click ▶ to resume" but the ▶ button was only in the Timer component at the top of the page — not on the full-screen overlay itself. Users couldn't see or click it.
+The pause overlay shows "Game Paused" text and a hint to press Space, but there is no clickable button to resume with the mouse. Users on desktop and especially mobile need a visible button.
 
-## Solution
-Add a prominent "▶ Resume" button directly inside the pause overlay, styled to be eye-catching and easy to find.
+## Approach
+The CSS already had `.pause-resume-btn` styles (green, large, pulse animation, mobile responsive) from a prior `fix-24-pause-button` branch. The fix is a one-line JSX change: add the button inside the pause overlay.
 
 ## Changes
+1. **src/components/SudokuBoard.tsx** (line 224): Replace the hint-only overlay with:
+   - Heading: "Game Paused"
+   - Button: `<button className="pause-resume-btn" onClick={togglePause}>▶ Resume</button>`
+   - Hint text: "Press Space to resume"
 
-### src/components/SudokuBoard.tsx
-- Replaced the static hint text `<p>` with a clickable `<button>` element
-- Button calls `togglePause` on click
-- Added `aria-label="Resume game"` for accessibility
-- Updated hint text to "or press Space to resume"
-
-### src/styles/sudoku.css
-- Added `.pause-resume-btn` styles:
-  - Green background (`var(--correct)`)
-  - Large size (180px × 52px minimum)
-  - Hover effect (scale + brightness)
-  - Active state (press down)
-  - Pulse animation (`resumeBtnPulse`) to draw attention
-- Added mobile responsive styles for the button (smaller on 480px screens)
-
-### src/components/index.ts
-- Removed duplicate `ConfirmationModal` export (pre-existing build fix)
-
-## Testing
-- TypeScript compilation: ✅ Clean
-- Vite production build: ✅ Successful
-- PR: https://github.com/e23thr/sudoku-webgame/pull/31
+## Verification
+- [x] `tsc --noEmit` passes
+- [x] `vite build` succeeds
+- [x] PR: https://github.com/e23thr/sudoku-webgame/pull/33

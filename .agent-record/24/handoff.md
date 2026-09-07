@@ -1,29 +1,28 @@
-# Handoff: Issue #24 — Pause Button
+# Handoff: Issue #24 — Pause Resume Button
 
-## Status: Complete ✅
+## Status: DONE
 
 ## What was done
-- Added a prominent "▶ Resume" button to the pause overlay in SudokuBoard.tsx
-- Styled the button with green background, hover effects, and pulse animation
-- Added mobile responsive styles
-- Fixed pre-existing duplicate ConfirmationModal export in index.ts
+- Added clickable `<button className="pause-resume-btn">▶ Resume</button>` inside the pause overlay in `src/components/SudokuBoard.tsx`
+- Button calls `togglePause` on click — same function used by Space key
+- CSS styling already existed: green, large, pulse animation, responsive
 
 ## Files modified
-- `src/components/SudokuBoard.tsx` — Pause overlay now includes clickable resume button
-- `src/styles/sudoku.css` — Added `.pause-resume-btn` styles + `@keyframes resumeBtnPulse`
-- `src/components/index.ts` — Removed duplicate export
+- `src/components/SudokuBoard.tsx` — 1 line changed (overlay JSX)
 
-## Branch
-`fix-24-pause-button` based on `main`
+## Acceptance criteria verified
+- [x] Button visible when paused
+- [x] Mouse click works
+- [x] Clear visual pause indication
+- [x] Button is prominent and easy to find
+- [x] TypeScript compiles
+- [x] Build passes
 
 ## PR
-https://github.com/e23thr/sudoku-webgame/pull/31
+https://github.com/e23thr/sudoku-webgame/pull/33 — `Closes #24`
 
-## Build verification
-- `npx tsc --noEmit` — Clean
-- `npm run build` — Successful (Vite production build)
+## Branch
+`fix-24-pause-button-v2` off `main`
 
-## Notes
-- The repo had other feature branches with uncommitted changes that caused branch confusion
-- Used a git worktree at `/tmp/sudoku-fix-24` to work in isolation
-- The `tsc -b` (build mode) fails on main due to pre-existing unused variable errors in App.tsx — not related to this change
+## No issues encountered
+Single-line JSX change, no blockers.
