@@ -221,7 +221,7 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
           return <SudokuCell key={`${rowIdx}-${colIdx}`} row={rowIdx} col={colIdx} value={cell} isGiven={isGiven(rowIdx, colIdx)} isSelected={isSelected} isHighlighted={isHighlighted} isSameNumber={isSameNumber} isCorrect={animState === 'correct'} isIncorrect={animState === 'incorrect'} isWrong={wrongCells.has(cellKey)} inputKey={inputAnimKey} notes={notes} onClick={handleCellClick} />;
         }))}
       </div>
-      {isPaused && <div className="pause-overlay"><span className="pause-icon">⏸</span><p>Game Paused</p><p className="pause-hint">Press Space or click ▶ to resume</p></div>}
+      {isPaused && <div className="pause-overlay"><span className="pause-icon">⏸</span><p>Game Paused</p><button className="pause-resume-btn" onClick={togglePause}>▶ Resume</button><p className="pause-hint">Press Space to resume</p></div>}
       <NumberPad onNumberSelect={handleNumberInput} onClear={handleClear} notesMode={state.notesMode} onToggleNotes={toggleNotes} onUndo={undo} onRedo={redo} canUndo={canUndo} canRedo={canRedo} />
     </div>
   );
