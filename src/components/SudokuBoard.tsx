@@ -354,7 +354,10 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
         <div className="pause-overlay">
           <span className="pause-icon">⏸</span>
           <p>Game Paused</p>
-          <p className="pause-hint">Press Space or click ▶ to resume</p>
+          <button className="pause-resume-btn" onClick={togglePause} aria-label="Resume game">
+            ▶ Resume
+          </button>
+          <p className="pause-hint">or press Space to resume</p>
         </div>
       )}
 
