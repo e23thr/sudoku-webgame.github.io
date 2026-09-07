@@ -1,5 +1,6 @@
 /* ================================
    Sudoku Board Styles
+   Uses CSS variables from themes.css
    ================================ */
 
 .sudoku-board {
@@ -8,14 +9,12 @@
   grid-template-rows: repeat(9, 1fr);
   width: min(90vw, 450px);
   aspect-ratio: 1;
-  border: 3px solid #1a237e;
+  border: 3px solid var(--board-border);
   border-radius: 6px;
   overflow: hidden;
-  background: #1a237e;
+  background: var(--board-gap);
   gap: 1px;
-  box-shadow:
-    0 4px 24px rgba(26, 35, 126, 0.25),
-    0 1px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--board-shadow);
 }
 
 /* ================================
@@ -26,8 +25,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fafafa;
-  color: #212121;
+  background: var(--cell-bg);
+  color: var(--cell-text);
   font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: clamp(16px, 4vw, 28px);
   font-weight: 400;
@@ -37,14 +36,15 @@
   transition:
     background-color 0.15s ease,
     color 0.15s ease,
-    transform 0.1s ease;
+    transform 0.1s ease,
+    box-shadow 0.2s ease;
   position: relative;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 
 .sudoku-cell:hover:not(.sudoku-cell--given) {
-  background: #e8eaf6;
+  background: var(--cell-highlighted-bg);
 }
 
 .sudoku-cell:active {
@@ -53,43 +53,39 @@
 
 /* ================================
    3×3 Box Borders (thicker lines)
-   Using nth-child selectors
    ================================ */
 
-/* Right border for cells 3, 6 in each row group (columns 2, 5) */
 .sudoku-cell:nth-child(3n) {
-  border-right: 2px solid #1a237e;
+  border-right: 2px solid var(--board-border);
 }
 .sudoku-cell:nth-child(9n) {
   border-right: none;
 }
 
-/* Bottom border for rows 2-3, 5-6 (index rows 2, 3, 5, 6) — 0-indexed: rows ending at index 26, 27, 53, 54 */
 .sudoku-cell:nth-child(n+19):nth-child(-n+27) {
-  border-bottom: 2px solid #1a237e;
+  border-bottom: 2px solid var(--board-border);
 }
 .sudoku-cell:nth-child(n+46):nth-child(-n+54) {
-  border-bottom: 2px solid #1a237e;
+  border-bottom: 2px solid var(--board-border);
 }
 
-/* Remove double borders at intersections */
 .sudoku-cell:nth-child(9n) {
   border-right: none;
 }
 
 /* ================================
-   Given Numbers (pre-filled, non-editable)
+   Given Numbers (pre-filled)
    ================================ */
 
 .sudoku-cell--given {
   font-weight: 700;
-  color: #1a237e;
-  background: #e8eaf6;
+  color: var(--cell-given-text);
+  background: var(--cell-given-bg);
   cursor: default;
 }
 
 .sudoku-cell--given:hover {
-  background: #e8eaf6;
+  background: var(--cell-given-bg);
 }
 
 /* ================================
@@ -97,11 +93,11 @@
    ================================ */
 
 .sudoku-cell--selected {
-  background: #bbdefb !important;
-  color: #0d47a1;
+  background: var(--cell-selected-bg) !important;
+  color: var(--cell-selected-text);
   font-weight: 700;
   z-index: 1;
-  box-shadow: inset 0 0 0 2px #1976d2;
+  box-shadow: inset 0 0 0 2px var(--cell-selected-border);
 }
 
 /* ================================
@@ -109,11 +105,11 @@
    ================================ */
 
 .sudoku-cell--highlighted {
-  background: #e3f2fd;
+  background: var(--cell-highlighted-bg);
 }
 
 .sudoku-cell--highlighted.sudoku-cell--given {
-  background: #bbdefb;
+  background: var(--cell-highlighted-given-bg);
 }
 
 /* ================================
@@ -121,11 +117,11 @@
    ================================ */
 
 .sudoku-cell--same-number {
-  background: #c8e6c9 !important;
+  background: var(--cell-same-number-bg) !important;
 }
 
 .sudoku-cell--same-number.sudoku-cell--given {
-  background: #a5d6a7;
+  background: var(--cell-same-number-given-bg);
   font-weight: 800;
 }
 
@@ -149,12 +145,33 @@
   justify-content: center;
   font-size: clamp(8px, 1.8vw, 12px);
   font-weight: 500;
-  color: #666;
+  color: var(--note-color);
   line-height: 1;
 }
 
 .sudoku-cell--has-notes {
   font-size: 0;
+}
+
+/* Animated value on input */
+.cell-value-animated {
+  display: inline-block;
+  animation: numberFadeIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes numberFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* ================================
@@ -186,13 +203,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border: 2px solid #e0e0e0;
+  background: var(--pad-bg);
+  border: 2px solid var(--pad-border);
   border-radius: 8px;
   font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: clamp(18px, 5vw, 28px);
   font-weight: 600;
-  color: #1a237e;
+  color: var(--pad-text);
   cursor: pointer;
   padding: 12px 8px;
   transition: all 0.15s ease;
@@ -200,8 +217,8 @@
 }
 
 .number-pad__button:hover {
-  background: #e8eaf6;
-  border-color: #1976d2;
+  background: var(--pad-hover-bg);
+  border-color: var(--pad-hover-border);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
@@ -213,14 +230,14 @@
 
 /* Clear button */
 .number-pad__button--clear {
-  background: #ffebee;
-  border-color: #ef9a9a;
-  color: #c62828;
+  background: var(--pad-clear-bg);
+  border-color: var(--pad-clear-border);
+  color: var(--pad-clear-text);
 }
 
 .number-pad__button--clear:hover {
-  background: #ffcdd2;
-  border-color: #ef5350;
+  background: var(--pad-clear-border);
+  border-color: var(--incorrect);
 }
 
 /* Notes toggle button */
@@ -232,13 +249,13 @@
 }
 
 .number-pad__button--active {
-  background: #1976d2;
-  border-color: #1565c0;
-  color: white;
+  background: var(--pad-active-bg);
+  border-color: var(--primary-dark);
+  color: var(--pad-active-text);
 }
 
 .number-pad__button--active:hover {
-  background: #1565c0;
+  background: var(--primary-dark);
 }
 
 .notes-icon {
@@ -279,8 +296,8 @@
 }
 
 .number-pad__button--disabled:hover {
-  background: #fff;
-  border-color: #e0e0e0;
+  background: var(--pad-bg);
+  border-color: var(--pad-border);
   transform: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -301,11 +318,11 @@
   }
 
   .sudoku-cell--given {
-    color: #1a237e;
+    color: var(--cell-given-text);
   }
 
   .sudoku-cell--selected {
-    box-shadow: inset 0 0 0 2px #1976d2;
+    box-shadow: inset 0 0 0 2px var(--cell-selected-border);
   }
 
   .note-number {
@@ -328,9 +345,7 @@
 
 @media (min-width: 768px) {
   .sudoku-board {
-    box-shadow:
-      0 8px 40px rgba(26, 35, 126, 0.3),
-      0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--board-shadow-lg);
   }
 
   .number-pad__button {
@@ -343,13 +358,13 @@
    ================================ */
 
 .sudoku-cell:focus-visible {
-  outline: 2px solid #1976d2;
+  outline: 2px solid var(--focus-ring);
   outline-offset: -2px;
   z-index: 2;
 }
 
 .number-pad__button:focus-visible {
-  outline: 2px solid #1976d2;
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -370,18 +385,18 @@
   font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: 2rem;
   font-weight: 700;
-  color: #1a237e;
+  color: var(--timer-color);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.05em;
   transition: color 0.2s ease;
 }
 
 .timer--paused .timer__display {
-  color: #9e9e9e;
+  color: var(--timer-paused);
 }
 
 .timer--completed .timer__display {
-  color: #2e7d32;
+  color: var(--timer-completed);
 }
 
 .timer__button {
@@ -391,8 +406,8 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid #e0e0e0;
-  background: #fff;
+  border: 2px solid var(--pad-border);
+  background: var(--pad-bg);
   font-size: 16px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -400,24 +415,24 @@
 }
 
 .timer__button:hover {
-  background: #e8eaf6;
-  border-color: #1976d2;
+  background: var(--pad-hover-bg);
+  border-color: var(--pad-hover-border);
   transform: scale(1.05);
 }
 
 .timer__button--pause {
-  color: #1976d2;
+  color: var(--primary);
 }
 
 .timer__button--play {
-  color: #2e7d32;
-  border-color: #a5d6a7;
-  background: #e8f5e9;
+  color: var(--timer-completed);
+  border-color: var(--correct);
+  background: var(--cell-same-number-bg);
 }
 
 .timer__button--play:hover {
-  background: #c8e6c9;
-  border-color: #2e7d32;
+  background: var(--cell-same-number-bg);
+  border-color: var(--timer-completed);
 }
 
 /* ================================
@@ -430,7 +445,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(26, 35, 126, 0.85);
+  background: var(--overlay-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -446,7 +461,7 @@
 }
 
 .pause-overlay p {
-  color: white;
+  color: var(--overlay-text);
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
@@ -470,13 +485,13 @@
 }
 
 .completion-message {
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-  border: 2px solid #66bb6a;
+  background: var(--completion-bg);
+  border: 2px solid var(--completion-border);
   border-radius: 12px;
   padding: 1.5rem 2rem;
   text-align: center;
   animation: scaleIn 0.3s ease;
-  box-shadow: 0 4px 16px rgba(46, 125, 50, 0.2);
+  box-shadow: var(--completion-shadow);
 }
 
 .completion-emoji {
@@ -486,13 +501,13 @@
 }
 
 .completion-message h2 {
-  color: #2e7d32;
+  color: var(--completion-title);
   margin: 0 0 0.5rem 0;
   font-size: 1.5rem;
 }
 
 .completion-message p {
-  color: #558b2f;
+  color: var(--completion-text);
   margin: 0 0 1rem 0;
   font-size: 1rem;
 }
@@ -523,25 +538,25 @@
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  border: 2px solid #c5cae9;
-  background: #fff;
-  color: #3949ab;
+  border: 2px solid var(--nav-border);
+  background: var(--nav-bg);
+  color: var(--nav-text);
   transition: all 0.15s ease;
 }
 
 .btn--difficulty:hover {
-  background: #e8eaf6;
-  border-color: #7986cb;
+  background: var(--nav-bg-hover);
+  border-color: var(--nav-border-hover);
 }
 
 .btn--difficulty-active {
-  background: #3949ab;
-  border-color: #3949ab;
-  color: white;
+  background: var(--diff-active-bg);
+  border-color: var(--diff-active-bg);
+  color: var(--diff-active-text);
 }
 
 .btn--difficulty-active:hover {
-  background: #303f9f;
+  background: var(--primary-dark);
 }
 
 /* ================================
@@ -549,13 +564,13 @@
    ================================ */
 
 .saved-badge {
-  color: #1976d2;
+  color: var(--saved-badge-color);
   font-weight: 600;
   font-size: 0.875rem;
 }
 
 /* ================================
-   Animations
+   Animations (built-in keyframes)
    ================================ */
 
 @keyframes fadeIn {

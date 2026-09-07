@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import type { SudokuGrid, SudokuGrid as SolutionGrid, Difficulty } from '../types/sudoku';
 import { useSudokuGame } from '../hooks/useSudokuGame';
 import SudokuCell from './SudokuCell';
@@ -13,6 +13,21 @@ interface SudokuBoardProps {
   onCellSelect?: (row: number, col: number) => void;
   onNewGame?: () => void;
 }
+
+// Pre-generate confetti pieces outside React to avoid impure render
+function generateConfettiPieces(): Array<{ id: number; left: string; delay: string; color: string; duration: string; size: string }> {
+  const colors = ['#f43f5e', '#6366f1', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4', '#8b5cf6'];
+  return Array.from({ length: 50 }, (_, i) => ({
+    id: i,
+    left: `${(i * 37 + 13) % 100}%`,
+    delay: `${(i * 0.13) % 2}s`,
+    color: colors[i % colors.length],
+    duration: `${2 + ((i * 7) % 3)}s`,
+    size: `${6 + ((i * 3) % 8)}px`,
+  }));
+}
+
+const CONFETTI_PIECES = generateConfettiPieces();
 
 const SudokuBoard: React.FC<SudokuBoardProps> = ({
   puzzle,
@@ -42,6 +57,10 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
   const isPaused = gameStatus === 'paused';
   const isCompleted = gameStatus === 'completed';
 
+  // Animation state — set in event handlers, not in effects
+  const [inputAnimKey, setInputAnimKey] = useState(0);
+  const [animCells, setAnimCells] = useState<Map<string, 'correct' | 'incorrect'>>(new Map());
+
   const handleCellClick = useCallback(
     (row: number, col: number) => {
       if (isPaused || isCompleted) return;
@@ -51,8 +70,56 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
     [selectCell, onCellSelect, isPaused, isCompleted],
   );
 
+  const handleNumberInput = useCallback(
+    (num: number) => {
+      if (isPaused || isCompleted) return;
+      if (!state.selectedCell) return;
+
+      const { row, col } = state.selectedCell;
+      if (state.notesMode) {
+        setNote(row, col, num);
+      } else {
+        setCell(row, col, num);
+      }
+
+      // Trigger input animation
+      setInputAnimKey(k => k + 1);
+
+      // Track correct/incorrect for animation (only for value cells, not notes)
+      if (!state.notesMode && num > 0 && state.grid[row][col] !== num) {
+        const cellKey = `${row},${col}`;
+        if (solution && num === solution[row][col]) {
+          setAnimCells(prev => new Map(prev).set(cellKey, 'correct'));
+          setTimeout(() => {
+            setAnimCells(prev => {
+              const next = new Map(prev);
+              next.delete(cellKey);
+              return next;
+            });
+          }, 500);
+        } else {
+          setAnimCells(prev => new Map(prev).set(cellKey, 'incorrect'));
+          setTimeout(() => {
+            setAnimCells(prev => {
+              const next = new Map(prev);
+              next.delete(cellKey);
+              return next;
+            });
+          }, 600);
+        }
+      }
+    },
+    [state.selectedCell, state.notesMode, state.grid, setCell, setNote, isPaused, isCompleted, solution],
+  );
+
+  const handleClear = useCallback(() => {
+    if (isPaused || isCompleted) return;
+    if (!state.selectedCell) return;
+    const { row, col } = state.selectedCell;
+    clearCell(row, col);
+  }, [state.selectedCell, clearCell, isPaused, isCompleted]);
+
   const handleCompletionNewGame = useCallback(() => {
-    // Dispatch completion event before navigating away
     window.dispatchEvent(
       new CustomEvent('sudoku-game-completed', {
         detail: {
@@ -66,83 +133,51 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
     onNewGame?.();
   }, [state.grid, solution, difficulty, timer, onNewGame]);
 
-  const handleNumberInput = useCallback(
-    (num: number) => {
-      if (isPaused || isCompleted) return;
-      if (!state.selectedCell) return;
-      
-      const { row, col } = state.selectedCell;
-      if (state.notesMode) {
-        setNote(row, col, num);
-      } else {
-        setCell(row, col, num);
-      }
-    },
-    [state.selectedCell, state.notesMode, setCell, setNote, isPaused, isCompleted],
-  );
-
-  const handleClear = useCallback(() => {
-    if (isPaused || isCompleted) return;
-    if (!state.selectedCell) return;
-    const { row, col } = state.selectedCell;
-    clearCell(row, col);
-  }, [state.selectedCell, clearCell, isPaused, isCompleted]);
-
   // Keyboard support
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't handle if typing in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
 
-      // Space to toggle pause (only when game is active)
       if (e.key === ' ' && !isCompleted) {
         e.preventDefault();
         togglePause();
         return;
       }
 
-      // Don't process game keys when paused or completed
       if (isPaused || isCompleted) return;
 
-      // Number keys 1-9
       if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
-        const num = parseInt(e.key);
-        handleNumberInput(num);
+        handleNumberInput(parseInt(e.key));
         return;
       }
 
-      // Delete/Backspace to clear
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
         handleClear();
         return;
       }
 
-      // N key to toggle notes mode
       if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
         toggleNotes();
         return;
       }
 
-      // Ctrl+Z for undo
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
         undo();
         return;
       }
 
-      // Ctrl+Y or Ctrl+Shift+Z for redo
       if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
         e.preventDefault();
         redo();
         return;
       }
 
-      // Arrow keys for cell navigation
       if (state.selectedCell && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
         const { row, col } = state.selectedCell;
@@ -150,18 +185,10 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
         let newCol = col;
 
         switch (e.key) {
-          case 'ArrowUp':
-            newRow = Math.max(0, row - 1);
-            break;
-          case 'ArrowDown':
-            newRow = Math.min(8, row + 1);
-            break;
-          case 'ArrowLeft':
-            newCol = Math.max(0, col - 1);
-            break;
-          case 'ArrowRight':
-            newCol = Math.min(8, col + 1);
-            break;
+          case 'ArrowUp': newRow = Math.max(0, row - 1); break;
+          case 'ArrowDown': newRow = Math.min(8, row + 1); break;
+          case 'ArrowLeft': newCol = Math.max(0, col - 1); break;
+          case 'ArrowRight': newCol = Math.min(8, col + 1); break;
         }
 
         selectCell(newRow, newCol);
@@ -196,14 +223,32 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
         </div>
       )}
 
-      <div className={`sudoku-board ${isPaused ? 'sudoku-board--paused' : ''}`}>
+      {isCompleted && (
+        <div className="confetti-container">
+          {CONFETTI_PIECES.map(piece => (
+            <div
+              key={piece.id}
+              className="confetti-piece"
+              style={{
+                left: piece.left,
+                backgroundColor: piece.color,
+                animationDuration: piece.duration,
+                animationDelay: piece.delay,
+                width: piece.size,
+                height: piece.size,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      <div className={`sudoku-board ${isPaused ? 'sudoku-board--paused' : ''} ${isCompleted ? 'sudoku-board--victory' : ''}`}>
         {state.grid.map((row, rowIdx) =>
           row.map((cell, colIdx) => {
             const isSelected =
               state.selectedCell?.row === rowIdx && state.selectedCell?.col === colIdx;
             const notes = getNotes(rowIdx, colIdx);
-            
-            // Pre-compute highlight info
+
             const highlightInfo = state.selectedCell && !isPaused && !isCompleted
               ? {
                   row: state.selectedCell.row,
@@ -230,6 +275,9 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
                 !(rowIdx === highlightInfo.row && colIdx === highlightInfo.col)
               : false;
 
+            const cellKey = `${rowIdx},${colIdx}`;
+            const animState = animCells.get(cellKey);
+
             return (
               <SudokuCell
                 key={`${rowIdx}-${colIdx}`}
@@ -240,6 +288,9 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
                 isSelected={isSelected}
                 isHighlighted={isHighlighted}
                 isSameNumber={isSameNumber}
+                isCorrect={animState === 'correct'}
+                isIncorrect={animState === 'incorrect'}
+                inputKey={inputAnimKey}
                 notes={notes}
                 onClick={handleCellClick}
               />
