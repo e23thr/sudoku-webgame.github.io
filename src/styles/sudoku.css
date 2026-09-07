@@ -3,6 +3,17 @@
    Uses CSS variables from themes.css
    ================================ */
 
+.sudoku-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0 8px;
+  box-sizing: border-box;
+}
+
 .sudoku-board {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
@@ -206,8 +217,8 @@
 .number-pad {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 16px;
+  gap: clamp(8px, 2vw, 12px);
+  margin-top: clamp(10px, 2vw, 16px);
   width: min(90vw, 450px);
   touch-action: manipulation;
 }
@@ -215,13 +226,13 @@
 .number-pad__numbers {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
-  gap: 8px;
+  gap: clamp(4px, 1.2vw, 8px);
 }
 
 .number-pad__actions {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: clamp(4px, 1.2vw, 8px);
 }
 
 .number-pad__button {
@@ -231,19 +242,20 @@
   justify-content: center;
   background: var(--pad-bg);
   border: 2px solid var(--pad-border);
-  border-radius: 8px;
+  border-radius: clamp(6px, 1.5vw, 8px);
   font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  font-size: clamp(18px, 5vw, 28px);
+  font-size: clamp(16px, 4.5vw, 28px);
   font-weight: 600;
   color: var(--pad-text);
   cursor: pointer;
-  padding: 12px 8px;
+  padding: clamp(8px, 2vw, 14px) clamp(4px, 1.5vw, 10px);
   transition: all 0.15s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   min-width: 44px;
   min-height: 44px;
+  aspect-ratio: 1;
 }
 
 .number-pad__button:hover {
@@ -275,8 +287,9 @@
 .number-pad__button--notes {
   grid-column: span 2;
   flex-direction: row;
-  gap: 8px;
-  font-size: 14px;
+  gap: clamp(4px, 1.2vw, 8px);
+  font-size: clamp(12px, 3vw, 14px);
+  aspect-ratio: auto;
 }
 
 .number-pad__button--active {
@@ -338,16 +351,21 @@
    ================================ */
 
 @media (max-width: 480px) {
+  .sudoku-game {
+    padding: 0 4px;
+    max-width: 100%;
+  }
+
   .sudoku-board {
-    width: 95vw;
+    width: 100%;
     border-width: 2px;
     gap: 1px;
   }
 
   .sudoku-cell {
     font-size: clamp(14px, 4.5vw, 22px);
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 0;
+    min-height: 0;
   }
 
   .sudoku-cell--given {
@@ -363,39 +381,83 @@
   }
 
   .number-pad {
-    width: 95vw;
-    padding: 8px;
+    width: 100%;
+    padding: 6px;
   }
 
   .number-pad__button {
-    padding: 12px 8px;
-    font-size: clamp(16px, 4.5vw, 24px);
-    min-width: 48px;
-    min-height: 48px;
+    padding: clamp(8px, 2.5vw, 14px) clamp(4px, 1.5vw, 10px);
+    font-size: clamp(14px, 4.2vw, 22px);
+    min-width: 0;
+    min-height: 40px;
+    border-width: 1.5px;
+    border-radius: 6px;
+    aspect-ratio: auto;
   }
 
   .number-pad__button--notes {
-    font-size: 12px;
+    font-size: clamp(11px, 2.8vw, 13px);
+    gap: 4px;
+  }
+
+  .number-pad__button--undo,
+  .number-pad__button--redo {
+    font-size: clamp(16px, 4vw, 20px);
   }
 }
 
 @media (max-width: 360px) {
+  .sudoku-game {
+    padding: 0 2px;
+  }
+
   .sudoku-board {
-    width: 98vw;
+    width: 100%;
+    border-width: 1.5px;
+    border-radius: 4px;
   }
 
   .sudoku-cell {
-    min-width: 36px;
-    min-height: 36px;
+    min-width: 0;
+    min-height: 0;
+    font-size: clamp(12px, 3.5vw, 16px);
+  }
+
+  .note-number {
+    font-size: clamp(6px, 1.4vw, 8px);
   }
 
   .number-pad {
-    width: 98vw;
+    width: 100%;
+    padding: 2px;
+    gap: 4px;
+  }
+
+  .number-pad__numbers {
+    gap: 2px;
+  }
+
+  .number-pad__actions {
+    gap: 2px;
   }
 
   .number-pad__button {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 0;
+    min-height: 34px;
+    padding: 6px 2px;
+    font-size: clamp(13px, 3.8vw, 16px);
+    border-width: 1px;
+    border-radius: 4px;
+  }
+
+  .number-pad__button--notes {
+    font-size: 10px;
+    gap: 2px;
+  }
+
+  .number-pad__button--undo,
+  .number-pad__button--redo {
+    font-size: clamp(13px, 3.8vw, 16px);
   }
 }
 
@@ -406,6 +468,7 @@
 
   .number-pad__button {
     padding: 14px 10px;
+    aspect-ratio: auto;
   }
 }
 

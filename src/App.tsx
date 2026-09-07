@@ -183,7 +183,6 @@ function App() {
               {d.charAt(0).toUpperCase() + d.slice(1)}
             </button>
           ))}
-        </div>
         <button
           className="btn btn--new"
           onClick={handleNewPuzzle}
@@ -191,6 +190,7 @@ function App() {
         >
           New Puzzle
         </button>
+        </div>
       </footer>
 
       <ConfirmationModal
