@@ -1,6 +1,12 @@
 /** 9x9 Sudoku grid — 0 represents an empty cell */
 export type SudokuGrid = number[][];
 
+/** Position of a cell in the grid */
+export interface CellPosition {
+  row: number;
+  col: number;
+}
+
 /** A single cell in the Sudoku grid */
 export interface SudokuCell {
   value: number;
