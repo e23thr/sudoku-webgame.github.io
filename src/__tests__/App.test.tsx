@@ -93,7 +93,6 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
     const cells = screen.getAllByRole('button', { name: /cell row/i });
-    
     await user.click(cells[0]);
     expect(cells[0].className).toContain('sudoku-cell--selected');
   });
@@ -102,14 +101,10 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
     const cells = screen.getAllByRole('button', { name: /cell row/i });
-    
-    // Find an empty cell
     const emptyCell = cells.find(c => c.getAttribute('aria-label')?.includes('empty'));
     if (!emptyCell) return;
-    
     await user.click(emptyCell);
     await user.click(screen.getByRole('button', { name: /enter number 5/i }));
-    
     const updatedLabel = emptyCell.getAttribute('aria-label') || '';
     expect(updatedLabel).toContain('5');
   });
@@ -117,10 +112,8 @@ describe('App', () => {
   it('can toggle notes mode', async () => {
     const user = userEvent.setup();
     render(<App />);
-    
     const notesButton = screen.getByRole('button', { name: /switch to notes mode/i });
     expect(notesButton).toBeInTheDocument();
-    
     await user.click(notesButton);
     expect(screen.getByRole('button', { name: /switch to normal mode/i })).toBeInTheDocument();
   });
@@ -129,21 +122,15 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
     const cells = screen.getAllByRole('button', { name: /cell row/i });
-    
     const emptyCell = cells.find(c => c.getAttribute('aria-label')?.includes('empty'));
     if (!emptyCell) return;
-    
     await user.click(emptyCell);
     await user.click(screen.getByRole('button', { name: /enter number 3/i }));
-    
     const undoButton = screen.getByRole('button', { name: /undo$/i });
     expect(undoButton).not.toBeDisabled();
-    
     await user.click(undoButton);
-    
     const afterUndo = emptyCell.getAttribute('aria-label') || '';
     expect(afterUndo).toContain('empty');
-    
     const redoButton = screen.getByRole('button', { name: /redo$/i });
     expect(redoButton).not.toBeDisabled();
   });
@@ -152,15 +139,11 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
     const cells = screen.getAllByRole('button', { name: /cell row/i });
-    
     const emptyCell = cells.find(c => c.getAttribute('aria-label')?.includes('empty'));
     if (!emptyCell) return;
-    
     await user.click(emptyCell);
     await user.click(screen.getByRole('button', { name: /enter number 7/i }));
-    
     await user.click(screen.getByRole('button', { name: /clear cell/i }));
-    
     const afterClear = emptyCell.getAttribute('aria-label') || '';
     expect(afterClear).toContain('empty');
   });
@@ -168,11 +151,8 @@ describe('App', () => {
   it('switches to history view', async () => {
     const user = userEvent.setup();
     render(<App />);
-    
     const nav = screen.getByRole('navigation', { name: /game navigation/i });
     await user.click(within(nav).getByText(/History/));
-    
-    // Wait for lazy-loaded HistoryPanel to appear
     await waitFor(() => {
       expect(screen.getByText(/History & Statistics/)).toBeInTheDocument();
     });
@@ -181,14 +161,11 @@ describe('App', () => {
   it('switches back to game view from history', async () => {
     const user = userEvent.setup();
     render(<App />);
-    
     const nav = screen.getByRole('navigation', { name: /game navigation/i });
-    
     await user.click(within(nav).getByText(/History/));
     await waitFor(() => {
       expect(screen.getByText(/History & Statistics/)).toBeInTheDocument();
     });
-    
     await user.click(within(nav).getByText(/Game/));
     const cells = screen.getAllByRole('button', { name: /cell row/i });
     expect(cells).toHaveLength(81);
@@ -197,23 +174,52 @@ describe('App', () => {
   it('can change difficulty', async () => {
     const user = userEvent.setup();
     render(<App />);
-    
     await user.click(screen.getByRole('button', { name: /select easy/i }));
     expect(screen.getByText('easy')).toBeInTheDocument();
-    
     await user.click(screen.getByRole('button', { name: /select hard/i }));
     expect(screen.getByText('hard')).toBeInTheDocument();
   });
 
-  it('can generate a new puzzle', async () => {
+  it('can generate a new puzzle with confirmation', async () => {
     const user = userEvent.setup();
     render(<App />);
-    
     expect(screen.getByText(/clues/)).toBeInTheDocument();
-    
+
+    // Click "New Puzzle" — should show confirmation dialog
     await user.click(screen.getByRole('button', { name: /generate new puzzle/i }));
-    
+
+    // Dialog should appear with warning message (use getAll for StrictMode compat)
+    const dialogs = screen.getAllByRole('dialog');
+    expect(dialogs.length).toBeGreaterThan(0);
+    const dialog = dialogs[0];
+    expect(within(dialog).getByText(/current progress will be lost/i)).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: /keep current/i })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: /start new puzzle/i })).toBeInTheDocument();
+
+    // Confirm — should generate new puzzle
+    await user.click(within(dialog).getByRole('button', { name: /start new puzzle/i }));
+
+    // Dialog should be gone, puzzle should still show clues
+    expect(screen.queryAllByRole('dialog')).toHaveLength(0);
     expect(screen.getByText(/clues/)).toBeInTheDocument();
+  });
+
+  it('can cancel new puzzle from confirmation dialog', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    // Click "New Puzzle" — should show confirmation dialog
+    await user.click(screen.getByRole('button', { name: /generate new puzzle/i }));
+
+    const dialogs = screen.getAllByRole('dialog');
+    expect(dialogs.length).toBeGreaterThan(0);
+    const dialog = dialogs[0];
+
+    // Cancel — should close dialog without generating new puzzle
+    await user.click(within(dialog).getByRole('button', { name: /keep current/i }));
+
+    // Dialog should be gone
+    expect(screen.queryAllByRole('dialog')).toHaveLength(0);
   });
 
   it('has proper ARIA labels on navigation', () => {
@@ -229,15 +235,11 @@ describe('App', () => {
   it('can pause and resume with spacebar', async () => {
     const user = userEvent.setup();
     render(<App />);
-    
     await user.keyboard(' ');
-    
     await waitFor(() => {
       expect(screen.getByText('Game Paused')).toBeInTheDocument();
     });
-    
     await user.keyboard(' ');
-    
     await waitFor(() => {
       expect(screen.queryByText('Game Paused')).not.toBeInTheDocument();
     });
@@ -247,12 +249,9 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
     const cells = screen.getAllByRole('button', { name: /cell row/i });
-    
     await user.click(cells[0]);
     expect(cells[0].className).toContain('sudoku-cell--selected');
-    
     await user.keyboard('{ArrowRight}');
-    
     expect(cells[1].className).toContain('sudoku-cell--selected');
   });
 
@@ -260,13 +259,10 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
     const cells = screen.getAllByRole('button', { name: /cell row/i });
-    
     const emptyCell = cells.find(c => c.getAttribute('aria-label')?.includes('empty'));
     if (!emptyCell) return;
-    
     await user.click(emptyCell);
     await user.keyboard('5');
-    
     const updatedLabel = emptyCell.getAttribute('aria-label') || '';
     expect(updatedLabel).toContain('5');
   });
@@ -275,14 +271,11 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
     const cells = screen.getAllByRole('button', { name: /cell row/i });
-    
     const emptyCell = cells.find(c => c.getAttribute('aria-label')?.includes('empty'));
     if (!emptyCell) return;
-    
     await user.click(emptyCell);
     await user.keyboard('5');
     await user.keyboard('{Backspace}');
-    
     const afterDelete = emptyCell.getAttribute('aria-label') || '';
     expect(afterDelete).toContain('empty');
   });
@@ -290,22 +283,15 @@ describe('App', () => {
   it('can toggle notes with N key', async () => {
     const user = userEvent.setup();
     render(<App />);
-    
     expect(screen.getByRole('button', { name: /switch to notes mode/i })).toBeInTheDocument();
-    
     await user.keyboard('n');
-    
     expect(screen.getByRole('button', { name: /switch to normal mode/i })).toBeInTheDocument();
   });
 });
 
 describe('ErrorBoundary', () => {
   it('renders children normally when no error', () => {
-    render(
-      <div>
-        <App />
-      </div>
-    );
+    render(<div><App /></div>);
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
   });
 });

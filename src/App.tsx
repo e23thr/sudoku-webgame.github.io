@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
-import { SudokuBoard, ThemeToggle } from './components';
+import { SudokuBoard, ThemeToggle, ConfirmationModal } from './components';
 import { createPuzzle, loadGameState, clearGameState } from './utils';
 import { saveCompletedGame } from './utils/db';
 import { usePreferences } from './hooks/usePreferences';
@@ -48,14 +48,28 @@ function App() {
   const [hasSavedGame, setHasSavedGame] = useState(() => loadGameState() !== null);
   const [view, setView] = useState<AppView>('game');
   const [completedGameSaved, setCompletedGameSaved] = useState(false);
+  const [showNewPuzzleConfirm, setShowNewPuzzleConfirm] = useState(false);
 
-  const handleNewPuzzle = useCallback(() => {
+  const generateNewPuzzle = useCallback(() => {
     clearGameState();
     const difficulty = preferences.defaultDifficulty;
     setPuzzle(createPuzzle(difficulty));
     setHasSavedGame(false);
     setCompletedGameSaved(false);
   }, [preferences.defaultDifficulty]);
+
+  const handleNewPuzzle = useCallback(() => {
+    setShowNewPuzzleConfirm(true);
+  }, []);
+
+  const handleConfirmNewPuzzle = useCallback(() => {
+    setShowNewPuzzleConfirm(false);
+    generateNewPuzzle();
+  }, [generateNewPuzzle]);
+
+  const handleCancelNewPuzzle = useCallback(() => {
+    setShowNewPuzzleConfirm(false);
+  }, []);
 
   const handleDifficultyChange = useCallback((difficulty: Difficulty) => {
     updateDefaultDifficulty(difficulty);
@@ -66,8 +80,8 @@ function App() {
   }, [updateDefaultDifficulty]);
 
   const handleNewPuzzleAfterCompletion = useCallback(() => {
-    handleNewPuzzle();
-  }, [handleNewPuzzle]);
+    generateNewPuzzle();
+  }, [generateNewPuzzle]);
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -178,6 +192,16 @@ function App() {
           New Puzzle
         </button>
       </footer>
+
+      <ConfirmationModal
+        isOpen={showNewPuzzleConfirm}
+        title="New Puzzle"
+        message="Are you sure you want a new puzzle? Your current progress will be lost."
+        confirmLabel="Start New Puzzle"
+        cancelLabel="Keep Current"
+        onConfirm={handleConfirmNewPuzzle}
+        onCancel={handleCancelNewPuzzle}
+      />
     </div>
   );
 }
