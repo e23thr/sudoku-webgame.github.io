@@ -75,6 +75,28 @@ export function solveSudoku(grid: SudokuGrid): boolean {
 }
 
 /**
+ * Get a hint for the puzzle by revealing one empty cell.
+ * Returns the value to place at [row, col], or null if puzzle is complete.
+ */
+export function getHint(
+  grid: SudokuGrid,
+  solution: SudokuGrid,
+): { row: number; col: number; value: number } | null {
+  const emptyCells: [number, number][] = [];
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      if (grid[r][c] === 0) {
+        emptyCells.push([r, c]);
+      }
+    }
+  }
+  if (emptyCells.length === 0) return null;
+
+  const [row, col] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+  return { row, col, value: solution[row][col] };
+}
+
+/**
  * Count the number of solutions for the given grid, up to `limit`.
  * Used to verify puzzle uniqueness.
  */
