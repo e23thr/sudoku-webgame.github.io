@@ -1,41 +1,47 @@
 .confirmation-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  animation: fadeIn 0.2s ease;
 }
 
 .confirmation-modal {
   border: none;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 0;
   max-width: 420px;
   width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   background: var(--bg, #fafafa);
-  color: var(--text, #212121);
+  color: var(--text, #2c2c3a);
+  animation: scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* True glassmorphism — inner border + subtle inner shadow */
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .confirmation-modal__content {
-  padding: 24px;
+  padding: 28px;
 }
 
 .confirmation-modal__title {
   margin: 0 0 12px;
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--text, #212121);
+  color: var(--text, #2c2c3a);
+  letter-spacing: -0.01em;
 }
 
 .confirmation-modal__message {
   margin: 0 0 24px;
   font-size: 0.95rem;
-  line-height: 1.5;
-  color: var(--text-secondary, #666);
+  line-height: 1.6;
+  color: var(--text-secondary, #6a6580);
+  font-weight: 500;
 }
 
 .confirmation-modal__actions {
@@ -45,46 +51,71 @@
 }
 
 .confirmation-modal .btn--confirm {
-  background: var(--btn-bg, #1976d2);
+  background: var(--btn-bg, #5b5bd6);
   color: var(--btn-text, #fff);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 10px 20px;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s;
-  box-shadow: var(--btn-shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--btn-shadow, 0 2px 8px rgba(91, 91, 214, 0.25));
 }
 
 .confirmation-modal .btn--confirm:hover {
-  background: var(--btn-bg-hover, #1565c0);
-  box-shadow: var(--btn-shadow-hover, 0 4px 12px rgba(0, 0, 0, 0.15));
+  background: var(--btn-bg-hover, #4848b8);
+  box-shadow: var(--btn-shadow-hover, 0 4px 14px rgba(91, 91, 214, 0.35));
+  transform: translateY(-1px);
+}
+
+.confirmation-modal .btn--confirm:active {
+  transform: translateY(0) scale(0.97);
 }
 
 .confirmation-modal .btn--confirm:focus-visible {
-  outline: 2px solid var(--focus-ring, #1976d2);
+  outline: 2px solid var(--focus-ring, #5b5bd6);
   outline-offset: 2px;
 }
 
 .confirmation-modal .btn--cancel {
   background: var(--nav-bg, #fff);
-  color: var(--nav-text, #3949ab);
-  border: 2px solid var(--nav-border, #c5cae9);
-  border-radius: 8px;
+  color: var(--nav-text, #4a4a6a);
+  border: 1.5px solid var(--nav-border, #ddd8d0);
+  border-radius: 10px;
   padding: 10px 20px;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .confirmation-modal .btn--cancel:hover {
-  background: var(--nav-bg-hover, #e8eaf6);
-  border-color: var(--nav-border-hover, #7986cb);
+  background: var(--nav-bg-hover, #f0ece6);
+  border-color: var(--nav-border-hover, #b8b0a5);
+}
+
+.confirmation-modal .btn--cancel:active {
+  transform: scale(0.97);
 }
 
 .confirmation-modal .btn--cancel:focus-visible {
-  outline: 2px solid var(--focus-ring, #1976d2);
+  outline: 2px solid var(--focus-ring, #5b5bd6);
   outline-offset: 2px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

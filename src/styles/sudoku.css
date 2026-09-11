@@ -21,7 +21,7 @@
   width: min(90vw, 450px);
   aspect-ratio: 1;
   border: 3px solid var(--board-border);
-  border-radius: 6px;
+  border-radius: 10px;
   overflow: hidden;
   background: var(--board-gap);
   gap: 1px;
@@ -43,21 +43,17 @@
   justify-content: center;
   background: var(--cell-bg);
   color: var(--cell-text);
-  font-family:
-    'Inter',
-    'Segoe UI',
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: 'Outfit', 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: clamp(16px, 4vw, 28px);
-  font-weight: 400;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
   border: none;
   cursor: pointer;
   padding: 0;
   transition:
     background-color 0.15s ease,
     color 0.15s ease,
-    transform 0.1s ease,
+    transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.2s ease;
   position: relative;
   touch-action: manipulation;
@@ -71,6 +67,7 @@
 
 .sudoku-cell:hover:not(.sudoku-cell--given) {
   background: var(--cell-highlighted-bg);
+  transform: scale(1.03);
 }
 
 .sudoku-cell:active {
@@ -112,6 +109,7 @@
 
 .sudoku-cell--given:hover {
   background: var(--cell-given-bg);
+  transform: none;
 }
 
 /* ================================
@@ -123,7 +121,7 @@
   color: var(--cell-selected-text);
   font-weight: 700;
   z-index: 1;
-  box-shadow: inset 0 0 0 2px var(--cell-selected-border);
+  box-shadow: inset 0 0 0 2.5px var(--cell-selected-border);
 }
 
 /* ================================
@@ -185,9 +183,10 @@
   align-items: center;
   justify-content: center;
   font-size: clamp(8px, 1.8vw, 12px);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--note-color);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .sudoku-cell--has-notes {
@@ -231,7 +230,7 @@
 .number-pad__numbers {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
-  gap: clamp(4px, 1.2vw, 4px);
+  gap: clamp(4px, 1.2vw, 6px);
   width: 100%;
 }
 
@@ -247,39 +246,35 @@
   align-items: center;
   justify-content: center;
   background: var(--pad-bg);
-  border: 2px solid var(--pad-border);
-  border-radius: clamp(6px, 1.5vw, 8px);
-  font-family:
-    'Inter',
-    'Segoe UI',
-    system-ui,
-    -apple-system,
-    sans-serif;
+  border: 1.5px solid var(--pad-border);
+  border-radius: 10px;
+  font-family: 'Outfit', 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: clamp(16px, 4.5vw, 28px);
   font-weight: 600;
   color: var(--pad-text);
   cursor: pointer;
   padding: clamp(8px, 2vw, 14px) clamp(4px, 1.5vw, 10px);
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   min-width: 44px;
   min-height: 44px;
   aspect-ratio: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .number-pad__button:hover {
   background: var(--pad-hover-bg);
   border-color: var(--pad-hover-border);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .number-pad__button:active {
   transform: scale(0.95) translateY(0);
   opacity: 0.85;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 /* Clear button */
@@ -296,7 +291,6 @@
 
 /* Notes toggle button */
 .number-pad__button--notes {
-  /* grid-column: span 2; */
   flex-direction: row;
   gap: clamp(4px, 1.2vw, 8px);
   font-size: clamp(12px, 3vw, 14px);
@@ -307,6 +301,7 @@
   background: var(--pad-active-bg);
   border-color: var(--primary-dark);
   color: var(--pad-active-text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .number-pad__button--active:hover {
@@ -336,7 +331,7 @@
 }
 
 .notes-label {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* Undo/Redo buttons */
@@ -346,7 +341,7 @@
 }
 
 .number-pad__button--disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
@@ -354,7 +349,7 @@
   background: var(--pad-bg);
   border-color: var(--pad-border);
   transform: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 /* ================================
@@ -402,7 +397,7 @@
     min-width: 0;
     min-height: 40px;
     border-width: 1.5px;
-    border-radius: 6px;
+    border-radius: 8px;
     aspect-ratio: auto;
   }
 
@@ -425,7 +420,7 @@
   .sudoku-board {
     width: 100%;
     border-width: 1.5px;
-    border-radius: 4px;
+    border-radius: 8px;
   }
 
   .sudoku-cell {
@@ -458,7 +453,7 @@
     padding: 6px 2px;
     font-size: clamp(13px, 3.8vw, 16px);
     border-width: 1px;
-    border-radius: 4px;
+    border-radius: 6px;
   }
 
   .number-pad__button--notes {
@@ -506,23 +501,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 14px;
   margin-bottom: 16px;
   width: min(90vw, 450px);
 }
 
 .timer__display {
-  font-family:
-    'Inter',
-    'Segoe UI',
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: 'Outfit', 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: 2rem;
   font-weight: 700;
   color: var(--timer-color);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   transition: color 0.2s ease;
 }
 
@@ -540,19 +530,20 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  border: 2px solid var(--pad-border);
+  border-radius: 10px;
+  border: 1.5px solid var(--pad-border);
   background: var(--pad-bg);
   font-size: 16px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .timer__button:hover {
   background: var(--pad-hover-bg);
   border-color: var(--pad-hover-border);
-  transform: scale(1.05);
+  transform: scale(1.08);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
 }
 
 .timer__button--pause {
@@ -586,7 +577,8 @@
   align-items: center;
   justify-content: center;
   z-index: 100;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.25s ease;
+  backdrop-filter: blur(8px);
 }
 
 .pause-icon {
@@ -600,12 +592,13 @@
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .pause-hint {
   font-size: 0.875rem !important;
-  font-weight: 400 !important;
-  opacity: 0.7;
+  font-weight: 500 !important;
+  opacity: 0.6;
   margin-top: 0.5rem !important;
 }
 
@@ -618,19 +611,14 @@
   padding: 0.875rem 2.25rem;
   font-size: 1.25rem;
   font-weight: 700;
-  font-family:
-    'Inter',
-    'Segoe UI',
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: 'Outfit', 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: white;
   background: var(--correct);
-  border: 3px solid var(--correct);
+  border: 2px solid var(--correct);
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   animation: resumeBtnPulse 2s ease-in-out infinite;
   min-width: 180px;
   min-height: 52px;
@@ -638,24 +626,24 @@
 
 .pause-resume-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
   filter: brightness(1.1);
 }
 
 .pause-resume-btn:active {
   transform: scale(0.97);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 @keyframes resumeBtnPulse {
   0%,
   100% {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   }
   50% {
     box-shadow:
-      0 4px 24px rgba(0, 0, 0, 0.35),
-      0 0 0 4px rgba(34, 197, 94, 0.2);
+      0 4px 24px rgba(0, 0, 0, 0.3),
+      0 0 0 4px rgba(61, 163, 93, 0.2);
   }
 }
 
@@ -672,10 +660,10 @@
 .completion-message {
   background: var(--completion-bg);
   border: 2px solid var(--completion-border);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 1.5rem 2rem;
   text-align: center;
-  animation: scaleIn 0.3s ease;
+  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow: var(--completion-shadow);
 }
 
@@ -689,12 +677,16 @@
   color: var(--completion-title);
   margin: 0 0 0.5rem 0;
   font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .completion-message p {
   color: var(--completion-text);
   margin: 0 0 1rem 0;
   font-size: 1rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ================================
@@ -727,25 +719,31 @@
 
 .btn--difficulty {
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  border: 2px solid var(--nav-border);
+  border: 1.5px solid var(--nav-border);
   background: var(--nav-bg);
   color: var(--nav-text);
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .btn--difficulty:hover {
   background: var(--nav-bg-hover);
   border-color: var(--nav-border-hover);
+  transform: translateY(-1px);
+}
+
+.btn--difficulty:active {
+  transform: translateY(0) scale(0.97);
 }
 
 .btn--difficulty-active {
   background: var(--diff-active-bg);
   border-color: var(--diff-active-bg);
   color: var(--diff-active-text);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .btn--difficulty-active:hover {
@@ -820,7 +818,7 @@
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.8);
+    transform: scale(0.85);
   }
   to {
     opacity: 1;
@@ -851,6 +849,7 @@
     width: 36px;
     height: 36px;
     font-size: 14px;
+    border-radius: 8px;
   }
 
   .pause-icon {
@@ -867,13 +866,13 @@
 
   .completion-message h2 {
     font-size: 1.25rem;
+  }
 
-    .pause-resume-btn {
-      padding: 0.75rem 1.75rem;
-      font-size: 1.1rem;
-      min-width: 160px;
-      min-height: 48px;
-    }
+  .pause-resume-btn {
+    padding: 0.75rem 1.75rem;
+    font-size: 1.1rem;
+    min-width: 160px;
+    min-height: 48px;
   }
 }
 
